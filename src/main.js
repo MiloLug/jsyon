@@ -26,7 +26,7 @@ class QuoteBlock {
 }
 
 
-class Parser {
+export class Parser {
     static tokenCollections = [
         new TokenCollection(2, ['+=', '-=', '/=', '*=']),
         new TokenCollection(1, ['=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@']),
@@ -229,7 +229,7 @@ let stdLib = {
     }
 };
 
-class Walker {
+export class Walker {
     constructor(path, context, startFrom) {
         this.entryTypeMethods = new Map();
         this.entryTypeMethods.set(String, this.processStringEntry.bind(this));
@@ -437,7 +437,7 @@ class Walker {
 }
 
 
-function hornyRun(code, context=undefined){
+export function hornyRun(code, context=undefined){
     return new Walker(new Parser(code).parse(), context).run();
 }
 
