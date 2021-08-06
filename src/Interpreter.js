@@ -1,4 +1,5 @@
 import Global from './Global.js';
+import Operators from './Operators.js';
 
 export default class Interpreter {
     constructor(path, context, startFrom) {
@@ -8,26 +9,6 @@ export default class Interpreter {
         this.entryTypeMethods.set(Object, this.processObjectEntry.bind(this));
         this.entryTypeMethods.set(Number, this.processStringEntry.bind(this));
 
-        this.operators = {
-            "(new)": this.operatorNew.bind(this),
-            "(as-context)": this.operatorAsContext.bind(this),
-            "(through)": this.operatorThrough.bind(this),
-            "(then-else)": this.operatorThenElse.bind(this),
-            "(else)": this.operatorElse.bind(this),
-            "(then)": this.operatorThen.bind(this),
-            "(map)": this.operatorMap.bind(this),
-            "(reduce)": this.operatorReduce.bind(this),
-
-            "=": this.operatorAssign.bind(this),
-            "+=": this.operatorPlusAssign.bind(this),
-            "-=": this.operatorMinusAssign.bind(this),
-            "/=": this.operatorDivAssign.bind(this),
-            "*=": this.operatorMulAssign.bind(this),
-            "+": this.operatorPlus.bind(this),
-            "-": this.operatorMinus.bind(this),
-            "/": this.operatorDiv.bind(this),
-            "*": this.operatorMul.bind(this)
-        };
         this.position = 0;
         this.prevPlace;
         this.curPlace = startFrom;
@@ -56,12 +37,12 @@ export default class Interpreter {
             return;
         }
 
-        if(this.operators[entry]) {
+        if(Operators[entry]) {
             let place = this.prevPlace;
             let prevEntry = this.path[this.position-1];
             this.prevPlace = this.curPlace;
-            this.curPlace = (...args) => this.operators[entry](
-                place, prevEntry, args
+            this.curPlace = (...args) => Operators[entry](
+                this, place, prevEntry, args
             );
             this.position++;
             return;
@@ -128,73 +109,7 @@ export default class Interpreter {
         }
         return obj;
     }
-
-    operatorAssign(obj, entry, args) {
-        obj[entry] = args[0];
-        return args[0];
-    }
-    operatorPlusAssign(obj, entry, args) {
-        obj[entry] += args[0];
-        return obj[entry];
-    }
-    operatorMinusAssign(obj, entry, args) {
-        obj[entry] -= args[0];
-        return obj[entry];
-    }
-    operatorDivAssign(obj, entry, args) {
-        obj[entry] /= args[0];
-        return obj[entry];
-    }
-    operatorMulAssign(obj, entry, args) {
-        obj[entry] *= args[0];
-        return obj[entry];
-    }
-    operatorPlus(obj, entry, args) {
-        return this.prevPlace + args[0];
-    }
-    operatorMinus(obj, entry, args) {
-        return this.prevPlace - args[0];
-    }
-    operatorDiv(obj, entry, args) {
-        return this.prevPlace / args[0];
-    }
-    operatorMul(obj, entry, args) {
-        return this.prevPlace * args[0];
-    }
-
-    operatorNew(obj, entry, args) {
-        return new (this.prevPlace)(...args);
-    }
-    operatorAsContext(obj, entry, args) {
-        return args[0];
-    }
-    operatorThrough(obj, entry, args) {
-        return this.prevPlace;
-    }
-    operatorThenElse(obj, entry, args) {
-        if(this.prevPlace)
-            return args[0];
-        return args[1];
-    }
-    operatorElse(obj, entry, args) {
-        if(!this.prevPlace)
-            return args[0];
-        return this.prevPlace;
-    }
-    operatorThen(obj, entry, args) {
-        if(this.prevPlace)
-            return args[0];
-        return this.prevPlace;
-    }
-    operatorMap(obj, entry, args) {
-        let fn = args[0];
-        return this.prevPlace.map((item, i) => fn(item, i));
-    }
-    operatorReduce(obj, entry, args) {
-        let fn = args[1];
-        return this.prevPlace.reduce((acc, item, i) => fn(acc, item, i), args[0])
-    }
-
+    
     run(){
         let fn;
         for(let entry; entry = this.path[this.position] ; ){
