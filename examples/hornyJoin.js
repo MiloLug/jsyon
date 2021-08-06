@@ -1,6 +1,6 @@
-import {hornyRun} from '../src/main.js';
+import {Global} from '../src/main.js';
 
-hornyRun(`
+Global.eval(`
 
 Obj[] (through) [last:[
     this hornyJoin = [:Fn[joiner, arr, raw:

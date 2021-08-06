@@ -1,4 +1,5 @@
 import Interpreter from './Interpreter.js';
+import Parser from './Parser.js';
 
 let nativeScope =
     typeof(window) !== "undefined"
@@ -14,6 +15,10 @@ let Global;
 export default Global = {
     js: nativeScope,
 
+    eval(code, context) {
+        return new Interpreter(new Parser(code).parse(), context).run();
+    },
+    
     zip(...args) {
         return args[0].map(
             (_, i) => args.map(arg => arg[i])
