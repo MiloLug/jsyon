@@ -2,21 +2,29 @@ import {hornyRun} from '../src/main.js';
 
 hornyRun(`
 
-global hornyJoin = [:std Fn[joiner, arr, raw:
-    this arr (reduce) [
-        @:std Obj[
-            @:std Arr[joiner, @:this joiner],
-            :std Arr[str, '']
-        ],
-        :std Fn[context, item, i, raw last: [
-            this context str += [@:
-                std Str[@: this i (then-else) [@:this context joiner, '']]
-                + [@: std Str[@:this item]]
+Obj[] (through) [last:[
+    this hornyJoin = [:Fn[joiner, arr, raw:
+        this arr (reduce) [
+            @:Obj[
+                @:Arr[joiner, @:this joiner],
+                :Arr[str, '']
             ],
-            this context
-        ]]
+            :Fn[context, item, i, raw last: [
+                this context str += [@:
+                    this i (then-else) [@:this context joiner, '']
+                    + [@:Str[@:this item]]
+                ],
+                this context
+            ]]
+        ]
+        str
+    ]],
+
+    print[
+        "Join, written in hornylang: ",
+        @:this hornyJoin [' UwU ', :Arr[1,2,3,4]]
     ]
-    str
 ]]
 
-`)
+`);
+
