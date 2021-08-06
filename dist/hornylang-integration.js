@@ -1,1 +1,1 @@
-(()=>{"use strict";document.querySelectorAll('script[type="application/x-hornylang"]').forEach((t=>{window.hornylang.Global.eval(t.textContent)}))})();
+(()=>{"use strict";document.querySelectorAll('script[type="application/x-hornylang"], script[lang="hornylang"]').forEach((n=>{window.hornylang.Global.eval(n.textContent)}))})();
