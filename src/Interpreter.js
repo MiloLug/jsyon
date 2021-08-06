@@ -7,27 +7,27 @@ export default class Interpreter {
         this.entryTypeMethods.set(Array, this.processArrayEntry.bind(this));
         this.entryTypeMethods.set(Object, this.processObjectEntry.bind(this));
         this.entryTypeMethods.set(Number, this.processStringEntry.bind(this));
-        
-        this.operators = new Map();
-        this.operators.set("(new)", this.operatorNew.bind(this));
-        this.operators.set("(as-context)", this.operatorAsContext.bind(this));
-        this.operators.set("(through)", this.operatorThrough.bind(this));
-        this.operators.set("(then-else)", this.operatorThenElse.bind(this));
-        this.operators.set("(else)", this.operatorElse.bind(this));
-        this.operators.set("(then)", this.operatorThen.bind(this));
-	this.operators.set("(map)", this.operatorMap.bind(this));
-	this.operators.set("(reduce)", this.operatorReduce.bind(this));
 
-        this.operators.set("=", this.operatorAssign.bind(this));
-        this.operators.set("+=", this.operatorPlusAssign.bind(this));
-        this.operators.set("-=", this.operatorMinusAssign.bind(this));
-        this.operators.set("/=", this.operatorDivAssign.bind(this));
-        this.operators.set("*=", this.operatorMulAssign.bind(this));
-        this.operators.set("+", this.operatorPlus.bind(this));
-        this.operators.set("-", this.operatorMinus.bind(this));
-        this.operators.set("/", this.operatorDiv.bind(this));
-        this.operators.set("*", this.operatorMul.bind(this));
-        
+        this.operators = {
+            "(new)": this.operatorNew.bind(this),
+            "(as-context)": this.operatorAsContext.bind(this),
+            "(through)": this.operatorThrough.bind(this),
+            "(then-else)": this.operatorThenElse.bind(this),
+            "(else)": this.operatorElse.bind(this),
+            "(then)": this.operatorThen.bind(this),
+            "(map)": this.operatorMap.bind(this),
+            "(reduce)": this.operatorReduce.bind(this),
+
+            "=": this.operatorAssign.bind(this),
+            "+=": this.operatorPlusAssign.bind(this),
+            "-=": this.operatorMinusAssign.bind(this),
+            "/=": this.operatorDivAssign.bind(this),
+            "*=": this.operatorMulAssign.bind(this),
+            "+": this.operatorPlus.bind(this),
+            "-": this.operatorMinus.bind(this),
+            "/": this.operatorDiv.bind(this),
+            "*": this.operatorMul.bind(this)
+        };
         this.position = 0;
         this.prevPlace;
         this.curPlace = startFrom;
@@ -56,11 +56,11 @@ export default class Interpreter {
             return;
         }
 
-        if(this.operators.has(entry)) {
+        if(this.operators[entry]) {
             let place = this.prevPlace;
             let prevEntry = this.path[this.position-1];
             this.prevPlace = this.curPlace;
-            this.curPlace = (...args) => this.operators.get(entry)(
+            this.curPlace = (...args) => this.operators[entry](
                 place, prevEntry, args
             );
             this.position++;
@@ -196,8 +196,12 @@ export default class Interpreter {
     }
 
     run(){
+        let fn;
         for(let entry; entry = this.path[this.position] ; ){
-            this.entryTypeMethods.get(entry.constructor)(entry);
+            if(fn = this.entryTypeMethods.get(entry.constructor))
+                fn(entry);
+            else
+                this.position++;
         }
         return this.curPlace;
     }
