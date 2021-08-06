@@ -1,0 +1,39 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <meta name="theme-color" content="#fafafa">
+
+    <script src="https://gitcdn.link/cdn/MiloLug/hornylang/js-core/dist/hornylang.js"></script>
+</head>
+
+<body>
+
+    <button class="btn">Click me!</button>
+    <div class="out"></div>
+
+    <script lang="hornylang">
+        js document querySelector['.btn'] (through)[last:[
+            this counter = [:Num[0]],
+            this addEventListener[click, :Fn[e, raw last:[
+                this e currentTarget counter += [:Num[1]],
+                js document querySelector['.out'] innerHTML = [@:
+                    this e currentTarget counter
+                ]
+            ]]]
+        ]]
+    </script>
+</body>
+    
+<script src="https://raw.githack.com/MiloLug/hornylang/js-web-integration/dist/hornylang-integration.js"></script>
+</html>
