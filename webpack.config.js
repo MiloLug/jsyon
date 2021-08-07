@@ -8,7 +8,7 @@ export default {
     entry: './src/main.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'hornylang-integration.js',
+        filename: 'jsyon-integration.js',
         globalObject: 'this'
     }
 }

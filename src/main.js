@@ -1,5 +1,5 @@
 document.querySelectorAll(
-    'script[type="application/x-hornylang"], script[lang="hornylang"]'
+    'script[type="application/x-jsyon"], script[lang="jsyon"]'
 ).forEach(element => {
-    window.hornylang.Global.eval(element.textContent);
+    window.jsyon.Global.eval(element.textContent);
 });
