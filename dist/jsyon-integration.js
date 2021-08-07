@@ -1,0 +1,1 @@
+(()=>{"use strict";document.querySelectorAll('script[type="application/x-jsyon"], script[lang="jsyon"]').forEach((t=>{window.jsyon.Global.eval(t.textContent)}))})();
