@@ -8,9 +8,9 @@ export default {
     entry: './src/main.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'hornylang.js',
+        filename: 'jsyon.js',
         library: {
-            name: 'hornylang',
+            name: 'jsyon',
             type: 'umd'
         },
         globalObject: 'this'

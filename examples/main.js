@@ -1,1 +1,1 @@
-import './hornyJoin.js';
+import './join.js';

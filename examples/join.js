@@ -3,7 +3,7 @@ import {Global} from '../src/main.js';
 Global.eval(`
 
 Obj[] (through) [last:[
-    this hornyJoin = [:Fn[joiner, arr, raw:
+    this join = [:Fn[joiner, arr, raw:
         this arr (reduce) [
             @:Obj[
                 @:Arr[joiner, @:this joiner],
@@ -21,8 +21,8 @@ Obj[] (through) [last:[
     ]],
 
     print[
-        "Join, written in hornylang: ",
-        @:this hornyJoin [' UwU ', :Arr[1,2,3,4]]
+        "Join, written in jsyon: ",
+        @:this join[' UwU ', :Arr[1,2,3,4]]
     ]
 ]]
 
