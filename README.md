@@ -2,6 +2,11 @@
 
 ### The most powerful language, where u can lose some context
 
+## Build:
+```bash
+npm run build
+```
+
 ## Examples:
 `join(Array, joinerString)` function, written in jsyon (with some example):
 
