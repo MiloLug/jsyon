@@ -1,0 +1,10 @@
+:Fn[i, arr, raw last:[
+    ~ arr push [@:~ i],
+    ~ i (then-else) [
+        :Fn[fn, i, arr, raw: ~ fn[
+            @:~ i-[:Num[1]],
+            @:~ arr
+        ]],
+        :Fn[fn, i, arr, raw: ~ arr]
+    ] [@:~ __fn__, @:~ i, @:~ arr]
+]]
