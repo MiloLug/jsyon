@@ -5,7 +5,8 @@
   "main": "./src/main.js",
   "scripts": {
     "build": "npx webpack --mode production",
-    "test": "node examples/main.js"
+    "test": "node examples/main.js",
+    "test-cli": "node src/cli.js run examples/main.jy"
   },
   "bin": {
     "jsyon": "bin/jsyon"

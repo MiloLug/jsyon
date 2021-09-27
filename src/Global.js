@@ -53,7 +53,7 @@ class Global {
 
     async import(relPath, useCache=true, context) {
         const fileName = path.basename(relPath);
-        const fullPath = path.resolve(relPath);
+        const fullPath = path.resolve(this.__root_dir_path, relPath);
         const nameArr = fileName.split('.');
         let src = this.fs.read_file(fullPath);
         let resolve, reject;
