@@ -4,10 +4,18 @@
 
 ## Build:
 ```bash
+npm i
 npm run build
 ```
 
 ## Examples:
+#### To run js examples:
+`npm run test`
+#### To run cli examples (.jy files directly using jsyon runner):
+`npm run test-cli`
+
+#### Some code:
+
 `join(joinerString, Array)` function, written in jsyon (with some example):
 
 ```ruby
