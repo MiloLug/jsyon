@@ -1,11 +1,7 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
-export default {
-    entry: './src/main.js',
+module.exports = {
+    entry: './src/web/main.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'jsyon.js',
@@ -15,4 +11,5 @@ export default {
         },
         globalObject: 'this'
     }
-}
+};
+

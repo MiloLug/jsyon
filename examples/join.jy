@@ -1,0 +1,16 @@
+Fn[joiner, arr, raw:
+    this arr (reduce) [
+        @:Obj[
+            @:Arr[joiner, @:this joiner],
+            :Arr[str, '']
+        ],
+        :Fn[context, item, i, raw last: [
+            this context str += [@:
+                this i (then-else) [@:this context joiner, '']
+                + [@:Str[@:this item]]
+            ],
+            this context
+        ]]
+    ]
+    str
+]

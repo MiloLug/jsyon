@@ -1,50 +1,90 @@
-let Operators;
-export default Operators = {
-    "(new)": (ctx, obj, entry, args) => new (ctx.prevPlace)(...args),
-    
-    "(as-context)": (ctx, obj, entry, args) => args[0],
-    
-    "(through)": (ctx, obj, entry, args) => ctx.prevPlace,
-    
-    "(then-else)": (ctx, obj, entry, args) => {
-        if(ctx.prevPlace)
-            return args[0];
-        return args[1];
+module.exports = {
+    "(new)": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return (...args) => new (prevPlace)(...args);
     },
     
-    "(else)": (ctx, obj, entry, args) => {
-        if(!ctx.prevPlace)
-            return args[0];
-        return ctx.prevPlace;
+    "(as-context)": (ctx, obj, entry) => context => context,
+    
+    "(through)": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return () => prevPlace;
     },
     
-    "(then)": (ctx, obj, entry, args) => {
-        if(ctx.prevPlace)
-            return args[0];
-        return ctx.prevPlace;
+    "(then-else)": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return (valueThen, valueElse) => {
+            if(prevPlace)
+                return valueThen;
+            return valueElse;
+        };
     },
     
-    "(map)": (ctx, obj, entry, args) => {
-        let fn = args[0];
-        return ctx.prevPlace.map((item, i) => fn(item, i));
+    "(else)": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => {
+            if(!prevPlace)
+                return value;
+            return prevPlace;
+        };
     },
     
-    "(reduce)": (ctx, obj, entry, args) => {
-        let fn = args[1];
-        return ctx.prevPlace.reduce((acc, item, i) => fn(acc, item, i), args[0])
+    "(then)": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => {
+            if(prevPlace)
+                return value;
+            return prevPlace;
+        };
+    },
+    
+    "(map)": async (ctx, obj, entry) => {
+        let prevPlace = crx.prevPlace;
+
+        return fn => Promise.all(prevPlace.map((item, i) => fn(item, i)));
+    },
+   
+    "(async)": async (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return (...args) => {
+            let ret = new Promise((res, rej) => res(prevPlace(...args)));
+            return () => ret
+        };
     },
 
-    "=": (ctx, obj, entry, args) => {
-        obj[entry] = args[0];
-        return args[0];
+    "(reduce)": async (ctx, obj, entry) => {
+        let i = 0;
+        let prevPlace = ctx.prevPlace;
+        
+        return async (acc, fn) => {
+            for(let item of prevPlace) {
+                await fn(acc, item, i);
+                i++;
+            }
+            return acc;
+        };
     },
-    "+=": (ctx, obj, entry, args) => obj[entry] += args[0],
-    "-=": (ctx, obj, entry, args) => obj[entry] -= args[0],
-    "/=": (ctx, obj, entry, args) => obj[entry] /= args[0],
-    "*=": (ctx, obj, entry, args) => obj[entry] *= args[0],
+
+    "=": (ctx, obj, entry) => value => (obj[entry] = value, value),
+    "+=": (ctx, obj, entry) => value => obj[entry] += value,
+    "-=": (ctx, obj, entry) => value => obj[entry] -= value,
+    "/=": (ctx, obj, entry) => value => obj[entry] /= value,
+    "*=": (ctx, obj, entry) => value => obj[entry] *= value,
     
-    "+": (ctx, obj, entry, args) => ctx.prevPlace + args[0],
-    "-": (ctx, obj, entry, args) => ctx.prevPlace - args[0],
-    "/": (ctx, obj, entry, args) => ctx.prevPlace / args[0],
-    "*": (ctx, obj, entry, args) => ctx.prevPlace * args[0]
+    "+": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace + value;
+    },
+    "-": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace - value;
+    },
+    "/": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace / value;
+    },
+    "*": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace * value;
+    },
 };
