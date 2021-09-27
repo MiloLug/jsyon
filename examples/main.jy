@@ -1,9 +1,12 @@
 Obj [] (through) [>: [
+    print["-- Join:\n"],
+
     ~> join = [:import['./join.jy']],
     print[
         "Join, written in jsyon: ",
         @:~> join[' UwU ', :Arr[1,2,3,4]]
     ],
+
 
     ~> long_fn = [:Fn[$:
         print[:import['./array_gen.jy'] [
@@ -12,7 +15,7 @@ Obj [] (through) [>: [
         ]]
     ]],
     
-    print["\nAsync test:"],
+    print["\n\n-- Async and import test:\n"],
 
     # calling operator (async), you create an async function.
     # async wait_all just calls all functions it receives
@@ -22,3 +25,4 @@ Obj [] (through) [>: [
         :print (async) [12]
     ]
 ]]
+

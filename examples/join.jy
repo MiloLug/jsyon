@@ -1,3 +1,4 @@
+# join[joiner: str, arr: Arr] -> str
 Fn[joiner, arr, $:
     ~> arr (reduce) [
         @:Obj[
