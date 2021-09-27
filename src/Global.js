@@ -80,7 +80,7 @@ class Global {
                 break;
         }
 
-        return ret;
+        return await ret;
     }
 
     async eval(code, context) {
@@ -120,10 +120,12 @@ class Global {
     Fn(...args) {
         let body = args[args.length - 1];
         let params = args.slice(0, args.length - 1);
-        return (...innerArgs) => {
+        let fn = (...innerArgs) => {
             let context = this.Obj(...this.zip(params, innerArgs));
+            context['__fn__'] = fn;
             return new Interpreter(this, body, context).run();
         };
+        return fn;
     }
     
     Num(n) {

@@ -19,7 +19,7 @@ module.exports = class Interpreter {
     
     findStartElements(entry) {
         switch(entry){
-            case "this":
+            case "~>":
                 this.curPlace = this.context;
                 this.position++;
                 break;
@@ -87,7 +87,7 @@ module.exports = class Interpreter {
         
         if(obj["@__raw"]) { 
             if(obj["@__last"] !== undefined)
-                return ["this", "(as-context)", [{"@__last": obj["@__last"]}]];
+                return ["~>", "(as-context)", [{"@__last": obj["@__last"]}]];
             return obj["@__expr"];
         }
 
