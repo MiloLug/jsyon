@@ -1,0 +1,6 @@
+# works both in browser and command line
+print[
+    :Str["Hello, "]
+    + [:input["What's your name? > "]]
+    + [!]
+]
