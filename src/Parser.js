@@ -15,21 +15,42 @@ class TokenCollection {
         return `(?:${this.tokens.map(escapeRegExp).join('|')})`;
     }
 }
+
+class SpecialChars {
+    constructor(...chars) {
+        this.chars = chars.map(ch => '\\\\' + ch[0]);
+        this.specials = chars.reduce((acc, ch) => (acc[ch[0]] = ch[1], acc), {});
+
+        this.findTemplate = `(?:${chars.map(ch => '\\\\'+ch[0]).join('|')})`;
+        this.replaceRegExp = new RegExp(`(?<!\\\\)(?:\\\\)(${chars.map(ch => ch[0]).join('|')})`, 'gmi');
+    }
+
+    clean(str) {
+        return str.replace(this.replaceRegExp, (full, $1) => this.specials[$1]);
+    }
+
+    toString() {
+        return this.findTemplate;
+    }
+}
+
 class QuoteBlock {
+    static specialsChars = new SpecialChars(['n', '\n'], ['r', '\r'], ['t', '\t']);
+
     constructor(quote){
         this.quote = quote;
     }
     
     toString() {
-        return `(?:${this.quote})((?:\\\\${this.quote}|.|\\n)*?)(?:${this.quote})`;
+        return `(?:${this.quote})((?:\\\\${this.quote}|${QuoteBlock.specialsChars}|.|\\n)*?)(?:${this.quote})`;
     }
 }
 
 
 module.exports = class Parser {
     static tokenCollections = [
-        new TokenCollection(2, ['+=', '-=', '/=', '*=']),
-        new TokenCollection(1, ['=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@']),
+        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>']),
+        new TokenCollection(1, ['$', '>', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@']),
     ];
     static quoteBlocks = [
         new QuoteBlock('"'),
@@ -64,9 +85,11 @@ module.exports = class Parser {
             code = code.replace(Parser.commentRegExp, '');
         
         this.tokens = tokens || [...code.matchAll(Parser.tokenizerRegExp)].map(
-            item => item
+            item => QuoteBlock.specialsChars.clean(
+                item
                 .reverse()
                 .find(group => group !== undefined)
+            )
         );
         this.position = 0;
         this.tokensCount = this.tokens.length;
@@ -99,9 +122,9 @@ module.exports = class Parser {
             .filter(item => item)
             .reduce((acc, item) => (acc[item] = 1, acc), {});
         let obj = {};
-        if (parameters["raw"]) obj["@__raw"] = 1;
+        if (parameters["$"]) obj["@__raw"] = 1;
         if (parameters["@"]) obj["@__follow_ctx"] = 1;
-        if (parameters["last"]) {
+        if (parameters[">"]) {
             obj["@__last"] = this.getArrayTopLevelItems(tokens)
                 .map(item => new Parser(null, item).parse());
         }
