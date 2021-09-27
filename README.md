@@ -8,30 +8,29 @@ npm run build
 ```
 
 ## Examples:
-`join(Array, joinerString)` function, written in jsyon (with some example):
+`join(joinerString, Array)` function, written in jsyon (with some example):
 
-```python
-Obj[] (through) [last:[
-    this join = [:Fn[joiner, arr, raw:
-        this arr (reduce) [
+```ruby
+Obj[] (through) [>:[
+    ~> join = [:Fn[joiner, arr, $:
+        ~> arr (reduce) [
             @:Obj[
-                @:Arr[joiner, @:this joiner],
+                @:Arr[joiner, @:~> joiner],
                 :Arr[str, '']
             ],
-            :Fn[context, item, i, raw last: [
-                this context str += [@:
-                    this i (then-else) [@:this context joiner, '']
-                    + [@:Str[@:this item]]
+            :Fn[context, item, i, >$: [
+                ~> context str += [@:
+                    ~> i (then-else) [@:~> context joiner, '']
+                    + [@:Str[@:~> item]]
                 ],
-                this context
+                ~> context
             ]]
-        ]
-        str
+        ] str
     ]],
     
     print[
         "Join, written in jsyon: ",
-        @:this join[' UwU ', :Arr[1,2,3,4]]
+        @:~> join[' UwU ', :Arr[1,2,3,4]]
     ]
 ]]
 ```
