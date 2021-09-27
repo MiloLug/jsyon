@@ -1,0 +1,5 @@
+print[
+    :Str["I know "]
+    + [:input["What's your mother's name? > "]]
+    + [", your wonderful mom!"]
+]

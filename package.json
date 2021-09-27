@@ -2,22 +2,28 @@
   "name": "jsyon-js-core",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.js",
-  "type": "module",
+  "main": "./src/main.js",
   "scripts": {
-    "build": "npx webpack --mode production"
+    "build": "npx webpack --mode production",
+    "test": "node examples/main.js"
+  },
+  "bin": {
+    "jsyon": "bin/jsyon"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MiloLug/hornylang.git"
+    "url": "git+https://github.com/MiloLug/jsyon.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/MiloLug/hornylang/issues"
+    "url": "https://github.com/MiloLug/jsyon/issues"
   },
-  "homepage": "https://github.com/MiloLug/hornylang#readme",
+  "homepage": "https://github.com/MiloLug/jsyon#readme",
   "dependencies": {
+    "commander": "^8.2.0",
+    "esm": "^3.2.25",
+    "prompt-sync": "^4.2.0",
     "webpack": "^5.48.0",
     "webpack-cli": "^4.7.2"
   }

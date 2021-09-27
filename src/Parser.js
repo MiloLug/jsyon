@@ -26,7 +26,7 @@ class QuoteBlock {
 }
 
 
-export default class Parser {
+module.exports = class Parser {
     static tokenCollections = [
         new TokenCollection(2, ['+=', '-=', '/=', '*=']),
         new TokenCollection(1, ['=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@']),
@@ -46,6 +46,12 @@ export default class Parser {
         ']': '{',
         ')': '('
     };
+    
+    static commentRegExp = new RegExp(
+        `(?:#\\*[\\s\\S]*?\\*#)|(?:#.*?$)`,
+        'gmi'
+    );
+
     static tokenizerRegExp = new RegExp(
         Parser.quoteBlocks.join('|')
         + `|(?:\\d|\\w|\\\\(?:${Parser.tokenCollections.join('|')}))+|`
@@ -54,6 +60,9 @@ export default class Parser {
     );
 
     constructor(code, tokens=null) {
+        if(code)
+            code = code.replace(Parser.commentRegExp, '');
+        
         this.tokens = tokens || [...code.matchAll(Parser.tokenizerRegExp)].map(
             item => item
                 .reverse()

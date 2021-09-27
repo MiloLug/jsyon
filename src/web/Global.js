@@ -1,8 +1,5 @@
-const Interpreter = require('./Interpreter.js');
-const Parser = require('./Parser.js');
-const path = require('path');
-const fs = require('fs').promises;
-const prompt = require('prompt-sync')({sigint: true});
+const Interpreter = require('../Interpreter.js');
+const Parser = require('../Parser.js');
 
 
 let nativeScope =
@@ -13,17 +10,6 @@ let nativeScope =
             : typeof(self) !== "undefined"
                 ? self
                 : globalThis;
-
-
-class JsyonFS {
-    constructor(global) {
-        this.__global = global;
-    }
-    
-    async read_file(path) {
-        return await fs.readFile(path, "utf-8");
-    }
-}
 
 
 class JsyonAsync {
@@ -42,45 +28,10 @@ class Global {
         this.__root_file_path = rootFilePath;
         this.__root_dir_path = path.dirname(rootFilePath);
         this.Js = nativeScope;
-        this.fs = new JsyonFS(this);
         this.async = new JsyonAsync(this);
 
         this.True = true;
         this.False = false;
-
-        this.__import_cache = {};
-    }
-
-    async import(relPath, useCache=true, context) {
-        const fileName = path.basename(relPath);
-        const fullPath = path.resolve(relPath);
-        const nameArr = fileName.split('.');
-        let src = this.fs.read_file(fullPath);
-        let resolve, reject;
-        let ret = new Promise((res, rej) => (resolve = res, reject = rej));
-
-        if(useCache)
-            if(fullPath in this.__import_cache)
-                return this.__import_cache;
-            else
-                this.__import_cache = ret;
-                
-
-        const ext = nameArr.length > 1 ? nameArr[nameArr.length - 1] : "jy";
-        switch(ext) {
-            case "jyson":
-                resolve(this.eval_json(JSON.parse(await src), context));
-                break;
-            case "json":
-                resolve(JSON.parse(await src));
-                break;
-            case "jy":
-            default:
-                resolve(this.eval(await src, context));
-                break;
-        }
-
-        return ret;
     }
 
     async eval(code, context) {

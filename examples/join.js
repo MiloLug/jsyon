@@ -1,4 +1,4 @@
-import {Global} from '../src/main.js';
+const {Global} = require('../src/main.js');
 
 Global.eval(`
 

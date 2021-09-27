@@ -1,0 +1,36 @@
+Obj [] (through) [last: [
+    this join = [:import['./join.jy']],
+    print[
+        "Join, written in jsyon: ",
+        @:this join[' UwU ', :Arr[1,2,3,4]]
+    ],
+
+    this test = [:Fn[a, raw: print[@:this a]]],
+
+    # generates an array of numbers from given number to 0
+    this gen_arr = [:Fn[fn, i, arr, raw last:[
+        this arr push [@:this i],
+        this i (then-else) [
+            :Fn[fn, i, arr, raw: this fn[
+                @:this fn,
+                @:this i-[:Num[1]],
+                @:this arr
+            ]],
+            :Fn[fn, i, arr, raw: this arr]
+        ] [@:this fn, @:this i, @:this arr]
+    ]]],
+    
+    # calling operator (async), you create an async function.
+    # async wait_all just calls all functions it receives
+    async wait_all [
+        @:this test (async) [69],
+        @:Fn[gen, raw: print[      # create and call a function
+            @:this gen[
+                @:this gen,
+                :Num[10],
+                :Arr[]
+            ]
+        ]] (async) [@:this gen_arr],
+        @:this test (async) [12],
+    ]
+]]

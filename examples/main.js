@@ -1,1 +1,1 @@
-import './join.js';
+require('./join.js');
