@@ -96,15 +96,6 @@ class Global {
             (_, i) => args.map(arg => arg[i])
         );
     }
-    
-    print(...args) {
-        console.log(...args);
-        return args;
-    }
-   
-    input(msg="") {
-        return prompt(msg);
-    }
 
     Obj(...args) {
         return args.reduce(
@@ -135,6 +126,20 @@ class Global {
     Str(data) {
         return new String(data);
     }
+    
+    print(...args) {
+        console.log(...args);
+        return args;
+    }
+   
+    input(msg="") {
+        return prompt(msg);
+    }
+
+    exit(code=0) {
+        process.exit(code);
+    }
+
 };
 
 module.exports = Global;

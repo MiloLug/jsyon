@@ -3,6 +3,7 @@ function escapeRegExp(string) {
 }
 
 class TokenCollection {
+    // Creates regex template part that matches tokens of particular length
     constructor(tokenLength, tokens){
         this.tokens = tokens;
         this.tokenLength = tokenLength;
@@ -17,6 +18,8 @@ class TokenCollection {
 }
 
 class SpecialChars {
+    // Creates reegex templates to match given special
+    // chars and replace them with the "originals"
     constructor(...chars) {
         this.chars = chars.map(ch => '\\\\' + ch[0]);
         this.specials = chars.reduce((acc, ch) => (acc[ch[0]] = ch[1], acc), {});
@@ -26,6 +29,7 @@ class SpecialChars {
     }
 
     clean(str) {
+        // replaces all special chars with their originals
         return str.replace(this.replaceRegExp, (full, $1) => this.specials[$1]);
     }
 
@@ -35,6 +39,8 @@ class SpecialChars {
 }
 
 class QuoteBlock {
+    // Matches a block enclosed with given quotes
+
     static specialsChars = new SpecialChars(['n', '\n'], ['r', '\r'], ['t', '\t']);
 
     constructor(quote){
@@ -50,7 +56,7 @@ class QuoteBlock {
 module.exports = class Parser {
     static tokenCollections = [
         new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>']),
-        new TokenCollection(1, ['$', '>', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@']),
+        new TokenCollection(1, ['$', '>', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
     ];
     static quoteBlocks = [
         new QuoteBlock('"'),
@@ -73,6 +79,7 @@ module.exports = class Parser {
         'gmi'
     );
 
+    // put together all the parts of big regex
     static tokenizerRegExp = new RegExp(
         Parser.quoteBlocks.join('|')
         + `|(?:\\d|\\w|\\\\(?:${Parser.tokenCollections.join('|')}))+|`
@@ -88,14 +95,14 @@ module.exports = class Parser {
             item => QuoteBlock.specialsChars.clean(
                 item
                 .reverse()
-                .find(group => group !== undefined)
+                .find(group => group !== undefined)  // it's convenient to take something important from the last group
             )
         );
         this.position = 0;
         this.tokensCount = this.tokens.length;
         this.body = [];
 
-        this.blockParsers = {
+        this.blockParsers = {  // create block-types handlers to quickly access them
             '{': this.parseObjectBlock.bind(this),
             '[': this.parseArrayBlock.bind(this),
             '(': this.parseOperatorBlock.bind(this)
@@ -114,6 +121,7 @@ module.exports = class Parser {
     }
 
     prepareString(data) {
+        // replace all escaped chars with their originals
         return data ? data.replace(/\\(.)/gmi, "$1") : "";
     }
 
