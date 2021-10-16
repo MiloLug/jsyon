@@ -6,7 +6,7 @@ module.exports = class Interpreter {
         this.entryTypeMethods.set(String, this.processStringEntry.bind(this));
         this.entryTypeMethods.set(Array, this.processArrayEntry.bind(this));
         this.entryTypeMethods.set(Object, this.processObjectEntry.bind(this));
-        this.entryTypeMethods.set(Number, this.processStringEntry.bind(this));
+        this.entryTypeMethods.set(Number, this.processNumberEntry.bind(this));
 
         this.position = 0;
         this.prevPlace;
@@ -33,7 +33,11 @@ module.exports = class Interpreter {
     }
 
     async processStringEntry(entry) {
-        if(this.position === 0 && this.curPlace == undefined){
+        if(entry?.constructor === String && !isNaN(parseInt(entry))) {
+            this.path[this.position] = +entry;
+            return;
+        }
+        if(this.position === 0 && this.curPlace == undefined) {
             this.findStartElements(entry);
             return;
         }
@@ -49,8 +53,17 @@ module.exports = class Interpreter {
 
         if(this.curPlace != undefined)
             this.prevPlace = this.curPlace,
-            this.curPlace = this.curPlace[entry];
+            this.curPlace = this.curPlace?.__get_attr__
+                ? this.curPlace.__get_attr__(entry)
+                : this.curPlace[entry];
+
         this.position++;
+    }
+    async processNumberEntry(entry) {
+        if(this.position === 0 && this.curPlace == undefined)
+            this.curPlace = {[entry]: entry};
+        else
+            this.processStringEntry(entry);
     }
     async processArrayEntry(entry) {
         let args = [];
@@ -112,7 +125,7 @@ module.exports = class Interpreter {
     
     async run(){
         let fn;
-        for(let entry; entry = this.path[this.position] ; ){
+        for(let entry; (entry = this.path[this.position]) !== undefined ; ){
             if(fn = this.entryTypeMethods.get(entry.constructor))
                 await fn(entry);
             else

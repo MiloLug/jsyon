@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const prompt = require('prompt-sync')({sigint: true});
 
+const builtIns = require('./modules/index.js');
 
 let nativeScope =
     typeof(window) !== "undefined"
@@ -15,24 +16,38 @@ let nativeScope =
                 : globalThis;
 
 
-class JsyonFS {
-    constructor(global) {
+class Range {
+    constructor(global, a, b, step=1) {
         this.__global = global;
-    }
-    
-    async read_file(path) {
-        return await fs.readFile(path, "utf-8");
-    }
-}
-
-
-class JsyonAsync {
-    constructor(global) {
-        this.__global = global;
+        this.a = a;
+        this.b = b;
+        this.step = step;
+        this.length = ((b - a) / step)|0;
+        this.current = a - step;
     }
 
-    async wait_all(...fns) {
-        return Promise.all(fns.map(fn => fn()));
+    next() {
+        return (this.current += this.step);
+    }
+
+    __to_arr__() {
+        let arr = [];
+        let a = this.a;
+
+        for(; a < this.b; a += this.step)
+            arr.push(a);
+
+        return arr;
+    }
+
+    __to_str__() {
+        return `${this.a}...${this.b}|${this.step}`;
+    }
+
+    __get_attr__(entry) {
+        if(entry?.constructor === Number)
+            return this.a + this.step * entry;
+        return this[entry];
     }
 }
 
@@ -42,31 +57,43 @@ class Global {
         this.__root_file_path = rootFilePath;
         this.__root_dir_path = path.dirname(rootFilePath);
         this.Js = nativeScope;
-        this.fs = new JsyonFS(this);
-        this.async = new JsyonAsync(this);
-
         this.True = true;
         this.False = false;
+        this.Null = null;
 
-        this.__import_cache = {};
+        this.__import_cache = new Map();
     }
 
     async import(relPath, useCache=true, context) {
+        const isBuiltIn = builtIns.has(relPath);
         const fileName = path.basename(relPath);
         const fullPath = path.resolve(this.__root_dir_path, relPath);
         const nameArr = fileName.split('.');
-        let src = this.fs.read_file(fullPath);
+        // Will be resolved later. So i can put this Promise to the cache to share it.
         let resolve, reject;
         let ret = new Promise((res, rej) => (resolve = res, reject = rej));
 
-        if(useCache)
-            if(fullPath in this.__import_cache)
-                return this.__import_cache;
-            else
-                this.__import_cache = ret;
-                
+        if(useCache) {
+            const cacheKey = isBuiltIn ? relPath : fullPath;
+            
+            // so everyone trying to use import will get the same instance
+            if(this.__import_cache.has(cacheKey)) {
+                relove(this.__import_cache.get(cacheKey));
+                return ret;
+            }
+            else this.__import_cache.set(cacheKey, ret);
+        }
 
+        if(isBuiltIn) {
+            resolve(
+                new (builtIns.get(relPath)())(this)
+            );
+            return ret;
+        }
+
+        let src = fs.readFile(fullPath, "utf-8");
         const ext = nameArr.length > 1 ? nameArr[nameArr.length - 1] : "jy";
+
         switch(ext) {
             case "jyson":
                 resolve(this.eval_json(JSON.parse(await src), context));
@@ -80,7 +107,7 @@ class Global {
                 break;
         }
 
-        return await ret;
+        return ret;
     }
 
     async eval(code, context) {
@@ -105,7 +132,11 @@ class Global {
     }
     
     Arr(...args) {
-        return (args);
+        if(args.length === 1) {
+            let a = args[0];
+            if(a?.__to_arr__) return a.__to_arr__();
+        }
+        return args;
     }
     
     Fn(...args) {
@@ -124,11 +155,16 @@ class Global {
     }
     
     Str(data) {
+        return data?.__to_str__ ? data.__to_str__() : new String(data);
         return new String(data);
+    }
+
+    Range(a, b, step=1) {
+        return new Range(global, a, b, step);
     }
     
     print(...args) {
-        console.log(...args);
+        console.log(...args.map(arg => arg + ""));
         return args;
     }
    

@@ -1,5 +1,5 @@
 Fn[$>:[
-    eval[:input["> "]],
+    print[:Str[:eval[:input["> "]]]],
     ~>__fn__(async)[]
 ]] []
 

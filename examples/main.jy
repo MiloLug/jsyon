@@ -9,8 +9,8 @@ Obj [] (through) [>: [
 
 
     ~> long_fn = [:Fn[$:
-        print[:import['./array_gen.jy'] [
-            :Num[10],
+        print["async imported and executed: ", :import['./array_gen.jy'] [
+            :10,
             :Arr[]
         ]]
     ]],
@@ -19,10 +19,15 @@ Obj [] (through) [>: [
 
     # calling operator (async), you create an async function.
     # async wait_all just calls all functions it receives
-    async wait_all [
+    ~> async = [:import['@async']],
+    ~> async wait_all [
         :print (async) [69],
         @:~> long_fn (async) [],  # it will produce the last print
         :print (async) [12]
-    ]
+    ],
+
+    print["\n\n-- Range test:\n"],
+
+    ~ range = [:3...[:10]]
 ]]
 

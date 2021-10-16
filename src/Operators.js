@@ -87,4 +87,27 @@ module.exports = {
         let prevPlace = ctx.prevPlace;
         return value => prevPlace * value;
     },
+
+    ">": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace > value;
+    },
+    "<": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace < value;
+    },
+    "==": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace === value;
+    },
+    "!=": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace !== value;
+    },
+
+    "...": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        let global = ctx.global;
+        return (value, step=1) => global.Range(prevPlace, value, step);
+    }
 };
