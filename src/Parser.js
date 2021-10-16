@@ -55,8 +55,9 @@ class QuoteBlock {
 
 module.exports = class Parser {
     static tokenCollections = [
-        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>']),
-        new TokenCollection(1, ['$', '>', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
+        new TokenCollection(3, ['...']),
+        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=']),
+        new TokenCollection(1, ['$', '>', '<', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
     ];
     static quoteBlocks = [
         new QuoteBlock('"'),
@@ -82,6 +83,7 @@ module.exports = class Parser {
     // put together all the parts of big regex
     static tokenizerRegExp = new RegExp(
         Parser.quoteBlocks.join('|')
+        + `|(?:-|)(?:0x[a-f0-9]+|0o[0-7]+|0b[01]+|\\d+)(?!\\w)`
         + `|(?:\\d|\\w|\\\\(?:${Parser.tokenCollections.join('|')}))+|`
         + Parser.tokenCollections.join('|'),
         'gmi'
