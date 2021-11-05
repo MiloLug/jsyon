@@ -2,7 +2,7 @@
   "name": "jsyon-js-core",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/main.js",
+  "main": "./src/native/main.js",
   "scripts": {
     "build": "npx webpack --mode production",
     "test": "node examples/main.js",

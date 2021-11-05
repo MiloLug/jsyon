@@ -1,4 +1,4 @@
-class JsyonAsync {
+class Async {
     constructor(global) {
         this.__global = global;
     }
@@ -8,4 +8,4 @@ class JsyonAsync {
     }
 }
 
-module.exports = JsyonAsync;
+module.exports = Async;
