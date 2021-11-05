@@ -1,20 +1,14 @@
 Fn[right, $>:[
     ~>n = [:Num[:input["number: "]]],
-    ~>right < [@:~>n] (then-else) [
-        :Fn[$:print['Too large!']],
-        :Fn[n, right, $:
-            ~>right > [@:~>n] (then-else) [
-                :Fn[$:print['Too low!']],
-                :Fn[$>:[
-                    print['Exactly!'],
-                    exit[]
-                ]]
-            ] []
+    
+    Fn[n, right, @:~>right < [@:~>n] (then-else) [
+        $:print['Too large!'],
+        @:~>right > [@:~>n] (then-else) [
+            $:print['Too low!'],
+            $>:[print['Exactly!'], exit[]]
         ]
-    ] [@:~>n, @:~>right],
+    ]] [@:~>n, @:~>right],
     ~>__fn__(async)[@:~>right]
 ]] [
     :import['@random'] from_range[:0...[:100]]
 ]
-
-
