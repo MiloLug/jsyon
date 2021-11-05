@@ -1,10 +1,5 @@
-const Interpreter = require('./Interpreter.js');
-const Parser = require('./Parser.js');
-const path = require('path');
-const fs = require('fs').promises;
-const prompt = require('prompt-sync')({sigint: true});
-
-const builtIns = require('./modules/index.js');
+const Interpreter = require('./interpreter.js');
+const Parser = require('./parser.js');
 
 let nativeScope =
     typeof(window) !== "undefined"
@@ -52,10 +47,8 @@ class Range {
 }
 
 
-class Global {
-    constructor(rootFilePath) {
-        this.__root_file_path = rootFilePath;
-        this.__root_dir_path = path.dirname(rootFilePath);
+class BaseGlobal {
+    constructor() {
         this.Js = nativeScope;
         this.True = true;
         this.False = false;
@@ -65,49 +58,7 @@ class Global {
     }
 
     async import(relPath, useCache=true, context) {
-        const isBuiltIn = builtIns.has(relPath);
-        const fileName = path.basename(relPath);
-        const fullPath = path.resolve(this.__root_dir_path, relPath);
-        const nameArr = fileName.split('.');
-        // Will be resolved later. So i can put this Promise to the cache to share it.
-        let resolve, reject;
-        let ret = new Promise((res, rej) => (resolve = res, reject = rej));
-
-        if(useCache) {
-            const cacheKey = isBuiltIn ? relPath : fullPath;
-            
-            // so everyone trying to use import will get the same instance
-            if(this.__import_cache.has(cacheKey)) {
-                relove(this.__import_cache.get(cacheKey));
-                return ret;
-            }
-            else this.__import_cache.set(cacheKey, ret);
-        }
-
-        if(isBuiltIn) {
-            resolve(
-                new (builtIns.get(relPath)())(this)
-            );
-            return ret;
-        }
-
-        let src = fs.readFile(fullPath, "utf-8");
-        const ext = nameArr.length > 1 ? nameArr[nameArr.length - 1] : "jy";
-
-        switch(ext) {
-            case "jyson":
-                resolve(this.eval_json(JSON.parse(await src), context));
-                break;
-            case "json":
-                resolve(JSON.parse(await src));
-                break;
-            case "jy":
-            default:
-                resolve(this.eval(await src, context));
-                break;
-        }
-
-        return ret;
+        return null;
     }
 
     async eval(code, context) {
@@ -156,7 +107,6 @@ class Global {
     
     Str(data) {
         return data?.__to_str__ ? data.__to_str__() : new String(data);
-        return new String(data);
     }
 
     Range(a, b, step=1) {
@@ -164,18 +114,16 @@ class Global {
     }
     
     print(...args) {
-        console.log(...args.map(arg => arg + ""));
-        return args;
+        return null;
     }
    
     input(msg="") {
-        return prompt(msg);
+        return null;
     }
 
     exit(code=0) {
-        process.exit(code);
+        return null;
     }
-
 };
 
-module.exports = Global;
+module.exports = BaseGlobal;

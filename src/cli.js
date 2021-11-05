@@ -4,7 +4,7 @@ const path = require('path');
 const { Command } = require('commander');
 const { version } = require('../package.json');
 
-const { Global, Parser } = require('./main.js');
+const { Global, Parser } = require('./native/main.js');
 
 
 const program = new Command();

@@ -1,4 +1,6 @@
-class JsyonFS {
+const fs = require('fs').promises;
+
+class FS {
     constructor(global) {
         this.__global = global;
     }
@@ -8,4 +10,4 @@ class JsyonFS {
     }
 }
 
-module.exports = JsyonFS;
+module.exports = FS;

@@ -1,4 +1,4 @@
-const Operators = require('./Operators.js');
+const operators = require('./operators.js');
 
 module.exports = class Interpreter {
     constructor(global, path, context, startFrom) {
@@ -42,11 +42,11 @@ module.exports = class Interpreter {
             return;
         }
 
-        if(Operators[entry]) {
+        if(operators[entry]) {
             let place = this.prevPlace;
             let prevEntry = this.path[this.position-1];
             this.prevPlace = this.curPlace;
-            this.curPlace = await Operators[entry](this, place, prevEntry);
+            this.curPlace = await operators[entry](this, place, prevEntry);
             this.position++;
             return;
         }
