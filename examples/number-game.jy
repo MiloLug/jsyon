@@ -10,5 +10,5 @@ Fn[right, $>:[
     ]] [@:~>n, @:~>right],
     ~>__fn__(async)[@:~>right]
 ]] [
-    :import[@random] from_range[:0...[:100]]
+    :import[@random] from_range[:0..[:100]]
 ]

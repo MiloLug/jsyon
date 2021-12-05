@@ -43,14 +43,6 @@ module.exports = {
 
         return fn => Promise.all(prevPlace.map((item, i) => fn(item, i)));
     },
-   
-    "(async)": async (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
-        return (...args) => {
-            let ret = new Promise((res, rej) => res(prevPlace(...args)));
-            return () => ret;
-        };
-    },
 
     "(reduce)": async (ctx, obj, entry) => {
         let i = 0;
@@ -63,6 +55,19 @@ module.exports = {
             }
             return acc;
         };
+    },
+   
+    "(async)": async (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return (...args) => {
+            let ret = new Promise((res, rej) => res(prevPlace(...args)));
+            return () => ret;
+        };
+    },
+   
+    "(bind)": async (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return (...bindedArgs) => (...args) => prevPlace(...bindedArgs, ...args);
     },
 
     "=": (ctx, obj, entry) => value => (obj[entry] = value, value),
@@ -113,7 +118,7 @@ module.exports = {
         return value => prevPlace | value;
     },
 
-    "...": (ctx, obj, entry) => {
+    "..": (ctx, obj, entry) => {
         let prevPlace = ctx.prevPlace;
         let global = ctx.global;
         return (value, step=1) => global.Range(prevPlace, value, step);
