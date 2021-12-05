@@ -106,24 +106,34 @@ class Interpreter {
 
         if(obj["@__follow_ctx"])
             ctx = this.context;
+
         if(obj["@__expr"] !== undefined)
-            return await new Interpreter(this.global, obj["@__expr"], ctx || this.prevPlace).run();
+            return new Interpreter(this.global, obj["@__expr"], ctx || this.prevPlace).run();
+
         if(obj["@__last"] !== undefined){
+            const exprs = obj["@__last"];
+            ctx ||= this.prevPlace;
+
             if(obj["@__async"]) {
                 const toHandle = [];
-                toHandle = obj["@__last"].map(expr => new Interpreter(this.global, expr, ctx || this.prevPlace).run());
+                
+                for(let i = 0, len = exprs.length; i < len; i++)
+                    toHandle.push(new Interpreter(this.global, exprs[i], ctx).run())
+
                 await Promise.all(toHandle);
                 return toHandle.length ? toHandle[toHandle.length - 1] : this.global.Null;
             }
             
             let ret;
-            for(const expr of obj["@__last"])
-                ret = await new Interpreter(this.global, expr, ctx || this.prevPlace).run();
+            for(let i = 0, len = exprs.length; i < len; i++)
+                ret = await new Interpreter(this.global, exprs[i], ctx).run();
             return ret;
         }
+
         let keys = Object.getOwnPropertyNames(obj);
-        for(let key of keys){
-            let data = obj[key];
+        for(let i = 0, len = keys.length; i < len; i++){
+            const key = keys[i];
+            const data = obj[key];
             if(data != undefined && data.constructor === Object)
                 obj[key] = await this.processObject(data);
         }
