@@ -3,6 +3,7 @@ const operators = require('./operators.js');
 class Interpreter {
     static entryTypeMethods = new Map();
     static exprMap = new Map();
+    static rawExprMap = new Map();
 
     constructor(path) {        
         this.position = 0;
@@ -161,8 +162,13 @@ class Interpreter {
         let ctx = undefined;
         
         if(obj["@__raw"]) { 
-            if(obj["@__last"] !== undefined)
-                return ["~>", "(as-context)", [{"@__last": obj["@__last"]}]];
+            if(obj["@__last"] !== undefined) {
+                let raw = Interpreter.rawExprMap.get(obj["@__last"]);
+                if (raw)
+                    return raw;
+                Interpreter.rawExprMap.set(obj["@__last"], raw = ["~>", "(as-context)", [{"@__last": obj["@__last"]}]]);
+                return raw;
+            }
             return obj["@__expr"];
         }
 
