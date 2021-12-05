@@ -2,30 +2,70 @@ const operators = require('./operators.js');
 
 class Interpreter {
     static entryTypeMethods = new Map();
+    static exprMap = new Map();
 
-    constructor(global, path, context, startFrom) {
+    constructor(path) {        
         this.position = 0;
-        this.prevPlace;
-        this.curPlace = startFrom;
         this.path = path;
-        this.context = context;
+        this.hasStartingPoint = false;
+        // stores functions like (state) => {...}
+        // where the state is an object with context, prev state etc.
+        this.executionQueue = [];
 
-        this.global = global;
+        this.initialization = this.init();
+    }
+
+    /**
+     * Runs any given expression using cache - expression given twice will not be baked again
+     * @param {'BaseGlobal'} global Object with default functions
+     * @param {Array} expr Expression
+     * @param {*} context Expression's context
+     * @returns whatewer the expr returns
+     */
+    static runExprGlobal(global, expr, context) {
+        if(Interpreter.exprMap.has(expr))
+            return Interpreter.exprMap.get(expr).run(global, context);
+        else {
+            const interp = new Interpreter(expr);
+            Interpreter.exprMap.set(expr, interp);
+            return interp.run(global, context);
+        }
+    }
+
+    /**
+     * Bakes given expression, translating it in a queue of function calls
+     * @returns {Promise<void>} nothing
+     */
+    async init() {
+        let fn;
+        for(let entry; (entry = this.path[this.position]) !== undefined ; ) {
+            if(fn = Interpreter.entryTypeMethods.get(entry.constructor))
+                await fn.call(this, entry);
+            else
+                this.position++;
+        }
     }
     
-    findStartElements(entry) {
+    setStartingPoint(entry) {
         switch(entry){
             case "~>":
-                this.curPlace = this.context;
+                this.executionQueue.push(async (state)=>{
+                    state.curPlace = state.context;
+                });
                 this.position++;
                 break;
             case "global":
-                this.curPlace = this.global;
+                this.executionQueue.push(async (state)=>{
+                    state.curPlace = state.global;
+                });
                 this.position++;
                 break;
             default:
-                this.curPlace = this.global;
+                this.executionQueue.push(async (state)=>{
+                    state.curPlace = state.global;
+                });
         }
+        this.hasStartingPoint = true;
     }
 
     async processStringEntry(entry) {
@@ -33,69 +73,91 @@ class Interpreter {
             this.path[this.position] = +entry;
             return;
         }
-        if(this.position === 0 && this.curPlace == undefined) {
-            this.findStartElements(entry);
+        if(this.position === 0 && !this.hasStartingPoint) {
+            this.setStartingPoint(entry);
             return;
         }
 
-        if(operators[entry]) {
-            let place = this.prevPlace;
-            let prevEntry = this.path[this.position-1];
-            this.prevPlace = this.curPlace;
-            this.curPlace = await operators[entry](this, place, prevEntry);
+        if(operators.has(entry)) {
+            const prevEntry = this.path[this.position-1];
+
+            this.executionQueue.push(async (state)=>{
+                const place = state.prevPlace;
+                state.prevPlace = state.curPlace;
+                state.curPlace = await operators.get(entry)(state, place, prevEntry); 
+            });
+
             this.position++;
             return;
         }
 
-        if(this.curPlace != undefined)
-            this.prevPlace = this.curPlace,
-            this.curPlace = this.curPlace?.__get_attr__
-                ? this.curPlace.__get_attr__(entry)
-                : this.curPlace[entry];
-
+        this.executionQueue.push(async (state)=>{
+            if(state.curPlace !== undefined) {
+                state.prevPlace = state.curPlace;
+                state.curPlace = state.curPlace?.__get_attr__
+                    ? state.curPlace.__get_attr__(entry)
+                    : state.curPlace?.[entry];
+            }
+        });
         this.position++;
     }
+
     async processNumberEntry(entry) {
-        if(this.position === 0 && this.curPlace == undefined)
-            this.curPlace = {[entry]: entry};
-        else
-            this.processStringEntry(entry);
-    }
-    async processArrayEntry(entry) {
-        let args = [];
-        for (let i = 0, len = entry.length; i < len; i++){
-            const item = entry[i];
-            if (item?.constructor === Object) {
-                if (item["@__unpack_arr_args"])
-                    args.push(...(await this.processObject(item)));
-                else
-                    args.push(await this.processObject(item));
-            } else
-                args.push(item);
+        if(this.position === 0 && !this.hasStartingPoint) {
+            this.executionQueue.push(async (state)=>{
+                state.curPlace = {[entry]: entry};
+            });
+            this.hasStartingPoint = true;
         }
-        let tmp = this.curPlace;
-        this.curPlace = await this.curPlace.apply(this.prevPlace, args);
-        this.prevPlace = tmp;
+        
+        this.processStringEntry(entry);
+    }
+
+    async processArrayEntry(entry) {
+        this.executionQueue.push(async (state)=>{
+            let args = [];
+            for (let i = 0, len = entry.length; i < len; i++){
+                const item = entry[i];
+                if (item?.constructor === Object) {
+                    if (item["@__unpack_arr_args"])
+                        args.push(...(await this.processObject(state, item)));
+                    else
+                        args.push(await this.processObject(state, item));
+                } else
+                    args.push(item);
+            }
+            let tmp = state.curPlace;
+            state.curPlace = await state.curPlace.apply(state.prevPlace, args);
+            state.prevPlace = tmp;
+        });
         this.position++;
     }
+
     async processObjectEntry(entry) {
-        this.prevPlace = this.curPlace;
-        if(this.position === 0 && this.curPlace === undefined){
-            this.findStartElements();
+        
+        if(this.position === 0 && !this.hasStartingPoint){
+            this.setStartingPoint();
             
-            this.prevPlace = this.curPlace;
-            this.curPlace = await this.processObject(entry);
+            this.executionQueue.push(async (state)=>{
+                state.prevPlace = state.curPlace;
+                state.curPlace = await this.processObject(state, entry);
+            });
+
             this.position++;
-            
             return;
         }
-        if(this.curPlace !== undefined)
-            this.curPlace = this.curPlace[
-                await this.processObject(entry)
-            ];
+        if(this.curPlace !== undefined) {
+            this.executionQueue.push(async (state)=>{
+                state.prevPlace = state.curPlace;
+                state.curPlace = state.curPlace[
+                    await this.processObject(state, entry)
+                ];
+            });
+        }
         this.position++;
     }
-    async processObject(obj) {
+
+    async processObject(state, obj) {
         let ctx = undefined;
         
         if(obj["@__raw"]) { 
@@ -105,28 +167,29 @@ class Interpreter {
         }
 
         if(obj["@__follow_ctx"])
-            ctx = this.context;
+            ctx = state.context;
 
-        if(obj["@__expr"] !== undefined)
-            return new Interpreter(this.global, obj["@__expr"], ctx || this.prevPlace).run();
+        if(obj["@__expr"] !== undefined){
+            return Interpreter.runExprGlobal(state.global, obj["@__expr"], ctx || state.prevPlace);
+        }
 
         if(obj["@__last"] !== undefined){
             const exprs = obj["@__last"];
-            ctx ||= this.prevPlace;
+            ctx ||= state.prevPlace;
 
             if(obj["@__async"]) {
                 const toHandle = [];
                 
                 for(let i = 0, len = exprs.length; i < len; i++)
-                    toHandle.push(new Interpreter(this.global, exprs[i], ctx).run())
+                    toHandle.push(Interpreter.runExprGlobal(state.global, exprs[i], ctx));
 
                 await Promise.all(toHandle);
-                return toHandle.length ? toHandle[toHandle.length - 1] : this.global.Null;
+                return toHandle.length ? toHandle[toHandle.length - 1] : state.global.Null;
             }
             
             let ret;
             for(let i = 0, len = exprs.length; i < len; i++)
-                ret = await new Interpreter(this.global, exprs[i], ctx).run();
+                ret = await Interpreter.runExprGlobal(state.global, exprs[i], ctx);
             return ret;
         }
 
@@ -135,20 +198,33 @@ class Interpreter {
             const key = keys[i];
             const data = obj[key];
             if(data != undefined && data.constructor === Object)
-                obj[key] = await this.processObject(data);
+                obj[key] = await this.processObject(state, data);
         }
         return obj;
     }
     
-    async run(){
-        let fn;
-        for(let entry; (entry = this.path[this.position]) !== undefined ; ){
-            if(fn = Interpreter.entryTypeMethods.get(entry.constructor))
-                await fn.call(this, entry);
-            else
-                this.position++;
+    /**
+     * Runs baked expression (waits for the `init` to finish)
+     * @param {'BaseGlobal'} global Object with default functions
+     * @param {*} context Expression's context
+     * @returns {*} Whatever the expr returns
+     */
+    async run(global, context){
+        await this.initialization;
+
+        const state = {
+            global: global,
+            context: context,
+            prevPlace: undefined,
+            curPlace: undefined
         }
-        return this.curPlace;
+
+        for(let i = 0, len = this.executionQueue.length; i < len; i++) {
+            await this.executionQueue[i](state);
+        }
+        const ret = state.curPlace;
+
+        return ret;
     }
 };
 
