@@ -1,18 +1,18 @@
 const operators = {
-    "(new)": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(new)": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return (...args) => new (prevPlace)(...args);
     },
     
-    "(as-context)": (ctx, obj, entry) => context => context,
+    "(as-context)": (state, obj, entry) => context => context,
     
-    "(through)": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(through)": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return () => prevPlace;
     },
     
-    "(then-else)": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(then-else)": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return (valueThen, valueElse) => {
             if(prevPlace)
                 return valueThen;
@@ -20,8 +20,8 @@ const operators = {
         };
     },
     
-    "(else)": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(else)": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => {
             if(!prevPlace)
                 return value;
@@ -29,8 +29,8 @@ const operators = {
         };
     },
     
-    "(then)": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(then)": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => {
             if(prevPlace)
                 return value;
@@ -38,14 +38,14 @@ const operators = {
         };
     },
     
-    "(map)": async (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(map)": async (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
 
         return fn => Promise.all(prevPlace.map((item, i) => fn(item, i)));
     },
 
-    "(reduce)": async (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(reduce)": async (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         
         return async (acc, fn) => {
             for(let i = 0, len = prevPlace.length; i < len; i++)
@@ -55,70 +55,70 @@ const operators = {
         };
     },
    
-    "(async)": async (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(async)": async (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return (...args) => {
             let ret = new Promise((res, rej) => res(prevPlace(...args)));
             return () => ret;
         };
     },
    
-    "(bind)": async (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "(bind)": async (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return (...bindedArgs) => (...args) => prevPlace(...bindedArgs, ...args);
     },
 
-    "=": (ctx, obj, entry) => value => (obj[entry] = value, value),
-    "+=": (ctx, obj, entry) => value => obj[entry] += value,
-    "-=": (ctx, obj, entry) => value => obj[entry] -= value,
-    "/=": (ctx, obj, entry) => value => obj[entry] /= value,
-    "*=": (ctx, obj, entry) => value => obj[entry] *= value,
+    "=": (state, obj, entry) => value => (obj[entry] = value, value),
+    "+=": (state, obj, entry) => value => obj[entry] += value,
+    "-=": (state, obj, entry) => value => obj[entry] -= value,
+    "/=": (state, obj, entry) => value => obj[entry] /= value,
+    "*=": (state, obj, entry) => value => obj[entry] *= value,
     
-    "+": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "+": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace + value;
     },
-    "-": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "-": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace - value;
     },
-    "/": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "/": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace / value;
     },
-    "*": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "*": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace * value;
     },
 
-    ">": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    ">": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace > value;
     },
-    "<": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "<": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace < value;
     },
-    "==": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "==": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace === value;
     },
-    "!=": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "!=": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace !== value;
     },
-    "&": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "&": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace & value;
     },
-    "|": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
+    "|": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
         return value => prevPlace | value;
     },
 
-    "..": (ctx, obj, entry) => {
-        let prevPlace = ctx.prevPlace;
-        let global = ctx.global;
+    "..": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
+        let global = state.global;
         return (value, step=1) => global.Range(prevPlace, value, step);
     }
 };
