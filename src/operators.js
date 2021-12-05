@@ -1,4 +1,4 @@
-module.exports = {
+const operators = {
     "(new)": (ctx, obj, entry) => {
         let prevPlace = ctx.prevPlace;
         return (...args) => new (prevPlace)(...args);
@@ -122,3 +122,5 @@ module.exports = {
         return (value, step=1) => global.Range(prevPlace, value, step);
     }
 };
+
+module.exports = new Map(Object.entries(operators));
