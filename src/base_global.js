@@ -129,7 +129,7 @@ class BaseGlobal {
     }
     
     Num(n) {
-        return new Number(n);
+        return +n;
     }
     
     Str(data) {

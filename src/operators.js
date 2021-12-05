@@ -45,14 +45,12 @@ module.exports = {
     },
 
     "(reduce)": async (ctx, obj, entry) => {
-        let i = 0;
         let prevPlace = ctx.prevPlace;
         
         return async (acc, fn) => {
-            for(let item of prevPlace) {
-                acc = await fn(acc, item, i);
-                i++;
-            }
+            for(let i = 0, len = prevPlace.length; i < len; i++)
+                acc = await fn(acc, prevPlace[i], i);
+                
             return acc;
         };
     },
