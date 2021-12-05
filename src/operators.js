@@ -39,7 +39,7 @@ module.exports = {
     },
     
     "(map)": async (ctx, obj, entry) => {
-        let prevPlace = crx.prevPlace;
+        let prevPlace = ctx.prevPlace;
 
         return fn => Promise.all(prevPlace.map((item, i) => fn(item, i)));
     },
@@ -48,7 +48,7 @@ module.exports = {
         let prevPlace = ctx.prevPlace;
         return (...args) => {
             let ret = new Promise((res, rej) => res(prevPlace(...args)));
-            return () => ret
+            return () => ret;
         };
     },
 
@@ -58,7 +58,7 @@ module.exports = {
         
         return async (acc, fn) => {
             for(let item of prevPlace) {
-                await fn(acc, item, i);
+                acc = await fn(acc, item, i);
                 i++;
             }
             return acc;
@@ -103,6 +103,14 @@ module.exports = {
     "!=": (ctx, obj, entry) => {
         let prevPlace = ctx.prevPlace;
         return value => prevPlace !== value;
+    },
+    "&": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace & value;
+    },
+    "|": (ctx, obj, entry) => {
+        let prevPlace = ctx.prevPlace;
+        return value => prevPlace | value;
     },
 
     "...": (ctx, obj, entry) => {

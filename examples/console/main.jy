@@ -1,0 +1,30 @@
+Fn[$>:[
+    cd = [:import[cd.jy]],
+    ls = [:import[ls.jy]],
+    cat = [:import[cat.jy]],
+
+    ~> branches = [:import[@branches]],
+    
+    import[jyshrc.jy] [@:~>],
+    
+
+    ~> response = [@: eval[
+        @: input[@:~>prompt[]],
+        @: ~>
+    ]],
+
+    ~> branches test[
+        :Fn[r, $:
+            ~>r != [:Null]
+            & [@: typeof[@:~>r] != [:Str] (then-else) [
+                @:Str[@:~>r] != ["[object Object]"],
+                :True
+            ]]
+        ],
+        :Fn[r, $:print[@:Str[@:~>r]]]
+    ] [@:~>response] [@:~>response],
+
+    ~>__fn__(async)[]
+]] []
+
+

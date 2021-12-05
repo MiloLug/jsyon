@@ -1,0 +1,5 @@
+Fn[path, >$:[
+    ~> fs = [:import[@fs]],
+    __execution_path = [@:~> fs resolve[:__execution_path, @:~> path]],
+    Null
+]]

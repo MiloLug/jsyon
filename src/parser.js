@@ -20,17 +20,21 @@ class TokenCollection {
 class SpecialChars {
     // Creates reegex templates to match given special
     // chars and replace them with the "originals"
+    static colorizationRegExp = new RegExp(`(?<!\\\\)(?:\\\\)(?:x1b\\[(\\d+)m)`, 'gmi');
+
     constructor(...chars) {
         this.chars = chars.map(ch => '\\\\' + ch[0]);
         this.specials = chars.reduce((acc, ch) => (acc[ch[0]] = ch[1], acc), {});
 
-        this.findTemplate = `(?:${chars.map(ch => '\\\\'+ch[0]).join('|')})`;
-        this.replaceRegExp = new RegExp(`(?<!\\\\)(?:\\\\)(${chars.map(ch => ch[0]).join('|')})`, 'gmi');
+        this.findTemplate = `(?:${chars.map(ch => '\\\\'+escapeRegExp(ch[0])).join('|')})`;
+        this.replaceRegExp = new RegExp(`(?<!\\\\)(?:\\\\)(${chars.map(ch => escapeRegExp(ch[0])).join('|')})`, 'gmi');
     }
 
     clean(str) {
         // replaces all special chars with their originals
-        return str.replace(this.replaceRegExp, (full, $1) => this.specials[$1]);
+        return str
+            .replace(this.replaceRegExp, (full, $1) => this.specials[$1])
+            .replace(SpecialChars.colorizationRegExp, (full, $1) => `\x1b[${$1}m`);
     }
 
     toString() {
@@ -57,7 +61,7 @@ module.exports = class Parser {
     static tokenCollections = [
         new TokenCollection(3, ['...']),
         new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=']),
-        new TokenCollection(1, ['$', '>', '<', '!', '~', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
+        new TokenCollection(1, ['$', '>', '<', '!', '~', '&', '|', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
     ];
     static quoteBlocks = [
         new QuoteBlock('"'),
@@ -134,6 +138,8 @@ module.exports = class Parser {
         let obj = {};
         if (parameters["$"]) obj["@__raw"] = 1;
         if (parameters["@"]) obj["@__follow_ctx"] = 1;
+        if (parameters["async"]) obj["@__async"] = 1;
+        if (parameters["..."]) obj["@__unpack_arr_args"] = 1;
         if (parameters[">"]) {
             obj["@__last"] = this.getArrayTopLevelItems(tokens)
                 .map(item => new Parser(null, item).parse());

@@ -1,4 +1,4 @@
-const Operators = require('./Operators.js');
+const operators = require('./operators.js');
 
 module.exports = class Interpreter {
     constructor(global, path, context, startFrom) {
@@ -42,11 +42,11 @@ module.exports = class Interpreter {
             return;
         }
 
-        if(Operators[entry]) {
+        if(operators[entry]) {
             let place = this.prevPlace;
             let prevEntry = this.path[this.position-1];
             this.prevPlace = this.curPlace;
-            this.curPlace = await Operators[entry](this, place, prevEntry);
+            this.curPlace = await operators[entry](this, place, prevEntry);
             this.position++;
             return;
         }
@@ -67,10 +67,13 @@ module.exports = class Interpreter {
     }
     async processArrayEntry(entry) {
         let args = [];
-        for(let item of entry){
-            if(item != undefined && item.constructor === Object)
-                args.push(await this.processObject(item));
-            else
+        for (let item of entry){
+            if (item != undefined && item.constructor === Object) {
+                if (item["@__unpack_arr_args"])
+                    args.push(...(await this.processObject(item)));
+                else
+                    args.push(await this.processObject(item));
+            } else
                 args.push(item);
         }
         let tmp = this.curPlace;
@@ -107,11 +110,18 @@ module.exports = class Interpreter {
         if(obj["@__follow_ctx"])
             ctx = this.context;
         if(obj["@__expr"] !== undefined)
-            return await (new Interpreter(this.global, obj["@__expr"], ctx || this.prevPlace)).run();
+            return await new Interpreter(this.global, obj["@__expr"], ctx || this.prevPlace).run();
         if(obj["@__last"] !== undefined){
+            if(obj["@__async"]) {
+                const toHandle = [];
+                toHandle = obj["@__last"].map(expr => new Interpreter(this.global, expr, ctx || this.prevPlace).run());
+                await Promise.all(toHandle);
+                return toHandle.length ? toHandle[toHandle.length - 1] : this.global.Null;
+            }
+            
             let ret;
-            for(let expr of obj["@__last"])
-                ret = await (new Interpreter(this.global, expr, ctx || this.prevPlace)).run();
+            for(const expr of obj["@__last"])
+                ret = await new Interpreter(this.global, expr, ctx || this.prevPlace).run();
             return ret;
         }
         let keys = Object.getOwnPropertyNames(obj);

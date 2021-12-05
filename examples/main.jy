@@ -15,6 +15,7 @@ Obj [] (through) [>: [
         ]]
     ]],
     
+
     print["\n\n-- Async and import test:\n"],
 
     # calling operator (async), you create an async function.
@@ -26,8 +27,34 @@ Obj [] (through) [>: [
         :print (async) [12]
     ],
 
+
     print["\n\n-- Range test:\n"],
 
-    ~ range = [:3...[:10]]
+    ~> range = [:3...[:10]],
+    print[@:Str[@:~>range]],
+    print[@:Arr[@:~>range]],
+
+
+    print["\n\n-- Branches test:\n"],
+
+    ~> branches = [:import["@branches"]],
+    
+    ~> selector = [@:~>branches multi_test_selector[
+        :Arr[:Fn[t, $:~>t == ["kek"]], :Fn[$: sleep[:1001] print["lol1"]] (async)],
+        :Arr[:Fn[t, $:~>t == ["kek"]], :Fn[$: sleep[:1000] print["lol2"]] (async)],
+        :Arr[:Fn[t, $:~>t == ["not kek"]], :Fn[$: print["lol not kek"]] (async)]
+    ]],
+    ~> async wait_all[@...:~> selector["kek"] []],
+
+    print["end selector 1"],
+
+    ~> selector = [@:~>branches multi_match_selector[
+        :Arr["kek", :Fn[$: sleep[:1001] print["lol1"]] (async)],
+        :Arr["kek", :Fn[$: sleep[:1000] print["lol2"]] (async)],
+        :Arr["not kek", :Fn[$: print["lol not kek"]] (async)]
+    ]],
+    ~> async wait_all[@...:~> selector["not kek"] []],
+
+    print["end selector 2"]
 ]]
 
