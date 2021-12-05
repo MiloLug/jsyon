@@ -1,0 +1,5 @@
+Fn[ctx, $>:[
+    ~>ctx prompt = [:Fn[$:
+        Str["\x1b[34m"] + [@:import[@fs] basename[:__execution_path]] + ["\x1b[0m> "]
+    ]]
+]]

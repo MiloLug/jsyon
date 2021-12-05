@@ -1,0 +1,16 @@
+Fn[$>:[
+    ~> fs = [:import[@fs]],
+    ~> fs read_dir[:__execution_path] (reduce) [
+        @:Obj[
+            :Arr[acc, ""],
+            @:Arr[fs, @:~>fs]
+        ],
+        :Fn[ctx, item, $>:[
+            ~>ctx acc += [@:Fn[item, @:~>ctx fs is_file[@:~>ctx fs resolve[:__execution_path, @:~>item]] (then-else) [
+                $:Str["\x1b[33m"] + [@:~>item] + ["\x1b[0m"],
+                $:~>item
+            ]] [@:~>item] + ['\n']],
+            ~>ctx
+        ]]
+    ] acc
+]]

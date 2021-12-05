@@ -1,0 +1,4 @@
+Fn[path, >$:[
+    ~> fs = [:import[@fs]],
+    ~> fs read_file[@:~>fs resolve[:__execution_path, @:~>path]]
+]]

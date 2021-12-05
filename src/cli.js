@@ -4,7 +4,7 @@ const path = require('path');
 const { Command } = require('commander');
 const { version } = require('../package.json');
 
-const { Global, Parser } = require('./main.js');
+const { Global, Parser } = require('./native/main.js');
 
 
 const program = new Command();
@@ -32,7 +32,7 @@ program
         let src = await utils.readFile(file);
         if(!src) return;
 
-        let jsyonGlobal = new Global(path.resolve(file));
+        let jsyonGlobal = new Global(path.resolve(file), process.cwd());
         
         if(options.json) {
             try {
