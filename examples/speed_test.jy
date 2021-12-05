@@ -1,0 +1,55 @@
+Obj [] (through) [>: [
+    ~>fn1 = [:Fn[$:
+        ~>a = [:
+            Arr[:3..[:100000]] (reduce) [
+                :0,
+                :Fn[acc, item, $:~>acc + [@:~>item]]
+            ]
+        ]
+    ]],
+    ~>fn2 = [:Fn[$:
+        ~>a = [:
+            Arr[:3..[:100000]] (reduce) [
+                :0,
+                :Js Function["acc", "item", "return acc + item;"]
+            ]
+        ]
+    ]],
+
+
+    print["start\n"],
+
+    ~>test_timer = [:Fn[fn, $>:[
+        ~>start = [:Js Date now[]],
+        ~>fn[],
+        Js Date now[] - [@:~>start]
+    ]]],
+
+    ~>test_sum = [:Fn[time, repeat_times, test_fn, $:
+        Fn[@..:~>__args_names__, current,
+            @:~>repeat_times > [:0] (then-else) [
+                $:~>current[
+                    @:~>time + [@:~>test_fn[]],
+                    @:~>repeat_times - [:1],
+                    @:~>test_fn
+                ],
+                $:~>time
+            ]
+        ] [@..:~>__args__, @:~>__fn__]
+    ] (bind) [:0]],
+    
+    ~>test_avg = [@:Fn[test_sum, repeat_times, test_fn, $:
+        ~>test_sum[@:~>repeat_times, @:~>test_fn] / [@:~>repeat_times]
+    ] (bind) [@:~>test_sum]],
+
+
+    print["jsyon result (ms): ",
+        @:~>test_avg[15, @:~>test_timer (bind) [@:~>fn1]]
+    ],
+    print["js result (ms): ",
+        @:~>test_avg[15, @:~>test_timer (bind) [@:~>fn2]]
+    ],
+
+    print[end],
+]]
+

@@ -78,16 +78,33 @@ class BaseGlobal {
     }
     
     zip(...args) {
-        return args[0].map(
-            (_, i) => args.map(arg => arg[i])
-        );
+        const res = [];
+        const argsLen = args.length;
+
+        if (!argsLen) return res;
+
+        const resLen = args[0].length;
+        let arg = args[0];
+
+        for (let i = 0; i < resLen; i++)
+            res.push([arg[i]]);
+
+        for (let i = 1; i < argsLen; i++) {
+            arg = args[i];
+
+            for (let j = 0; j < resLen; j++)
+                res[j].push(arg[j]);
+        }
+
+        return res;
     }
 
     Obj(...args) {
-        return args.reduce(
-            (acc, item) => (acc[item[0]] = item[1], acc),
-            {}
-        );
+        const obj = {};
+        for(let i = 0, len = args.length; i < len; i++)
+            obj[args[i][0]] = args[i][1];
+
+        return obj;
     }
     
     Arr(...args) {
@@ -104,6 +121,8 @@ class BaseGlobal {
         let fn = (...innerArgs) => {
             let context = this.Obj(...this.zip(params, innerArgs));
             context['__fn__'] = fn;
+            context['__args__'] = innerArgs;
+            context['__args_names__'] = params;
             return new Interpreter(this, body, context).run();
         };
         return fn;

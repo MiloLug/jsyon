@@ -1,13 +1,9 @@
 const operators = require('./operators.js');
 
-module.exports = class Interpreter {
-    constructor(global, path, context, startFrom) {
-        this.entryTypeMethods = new Map();
-        this.entryTypeMethods.set(String, this.processStringEntry.bind(this));
-        this.entryTypeMethods.set(Array, this.processArrayEntry.bind(this));
-        this.entryTypeMethods.set(Object, this.processObjectEntry.bind(this));
-        this.entryTypeMethods.set(Number, this.processNumberEntry.bind(this));
+class Interpreter {
+    static entryTypeMethods = new Map();
 
+    constructor(global, path, context, startFrom) {
         this.position = 0;
         this.prevPlace;
         this.curPlace = startFrom;
@@ -67,8 +63,9 @@ module.exports = class Interpreter {
     }
     async processArrayEntry(entry) {
         let args = [];
-        for (let item of entry){
-            if (item != undefined && item.constructor === Object) {
+        for (let i = 0, len = entry.length; i < len; i++){
+            const item = entry[i];
+            if (item?.constructor === Object) {
                 if (item["@__unpack_arr_args"])
                     args.push(...(await this.processObject(item)));
                 else
@@ -83,7 +80,7 @@ module.exports = class Interpreter {
     }
     async processObjectEntry(entry) {
         this.prevPlace = this.curPlace;
-        if(this.position === 0 && this.curPlace == undefined){
+        if(this.position === 0 && this.curPlace === undefined){
             this.findStartElements();
             
             this.prevPlace = this.curPlace;
@@ -92,7 +89,7 @@ module.exports = class Interpreter {
             
             return;
         }
-        if(this.curPlace != undefined)
+        if(this.curPlace !== undefined)
             this.curPlace = this.curPlace[
                 await this.processObject(entry)
             ];
@@ -136,8 +133,8 @@ module.exports = class Interpreter {
     async run(){
         let fn;
         for(let entry; (entry = this.path[this.position]) !== undefined ; ){
-            if(fn = this.entryTypeMethods.get(entry.constructor))
-                await fn(entry);
+            if(fn = Interpreter.entryTypeMethods.get(entry.constructor))
+                await fn.call(this, entry);
             else
                 this.position++;
         }
@@ -145,3 +142,9 @@ module.exports = class Interpreter {
     }
 };
 
+Interpreter.entryTypeMethods.set(String, Interpreter.prototype.processStringEntry);
+Interpreter.entryTypeMethods.set(Array, Interpreter.prototype.processArrayEntry);
+Interpreter.entryTypeMethods.set(Object, Interpreter.prototype.processObjectEntry);
+Interpreter.entryTypeMethods.set(Number, Interpreter.prototype.processNumberEntry);
+
+module.exports = Interpreter;

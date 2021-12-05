@@ -59,8 +59,7 @@ class QuoteBlock {
 
 module.exports = class Parser {
     static tokenCollections = [
-        new TokenCollection(3, ['...']),
-        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=']),
+        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=', '..']),
         new TokenCollection(1, ['$', '>', '<', '!', '~', '&', '|', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
     ];
     static quoteBlocks = [
@@ -139,7 +138,7 @@ module.exports = class Parser {
         if (parameters["$"]) obj["@__raw"] = 1;
         if (parameters["@"]) obj["@__follow_ctx"] = 1;
         if (parameters["async"]) obj["@__async"] = 1;
-        if (parameters["..."]) obj["@__unpack_arr_args"] = 1;
+        if (parameters[".."]) obj["@__unpack_arr_args"] = 1;
         if (parameters[">"]) {
             obj["@__last"] = this.getArrayTopLevelItems(tokens)
                 .map(item => new Parser(null, item).parse());
