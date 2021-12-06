@@ -162,10 +162,11 @@ class Interpreter {
         
         if(obj["@__raw"]) { 
             if(obj["@__last"] !== undefined) {
-                let raw = Interpreter.rawExprCacheMap.get(obj["@__last"]);
+                const cacheKey = obj["@__hash"] ?? obj["@__last"];
+                let raw = Interpreter.rawExprCacheMap.get(cacheKey);
                 if (raw)
                     return raw;
-                Interpreter.rawExprCacheMap.set(obj["@__last"], raw = ["~>", "(as-context)", [{"@__last": obj["@__last"]}]]);
+                Interpreter.rawExprCacheMap.set(cacheKey, raw = ["~>", "(as-context)", [{"@__last": obj["@__last"]}]]);
                 return raw;
             }
             return obj["@__expr"];
@@ -180,7 +181,7 @@ class Interpreter {
 
         if(obj["@__last"] !== undefined){
             const exprs = obj["@__last"];
-            const hash = obj["@__hash"];
+            const hashes = obj["@__items_hashes"] ?? [];
             ctx ||= state.prevPlace;
 
             if(obj["@__async"]) {
@@ -188,7 +189,7 @@ class Interpreter {
                 
                 for(let i = 0, len = exprs.length; i < len; i++)
                     toHandle.push(
-                        Interpreter.runExprGlobal(state.global, exprs[i], ctx, hash?.[i])
+                        Interpreter.runExprGlobal(state.global, exprs[i], ctx, hashes[i])
                     );
 
                 await Promise.all(toHandle);
@@ -197,7 +198,8 @@ class Interpreter {
             
             let ret;
             for(let i = 0, len = exprs.length; i < len; i++)
-                ret = await Interpreter.runExprGlobal(state.global, exprs[i], ctx, hash?.[i]);
+                ret = await Interpreter.runExprGlobal(state.global, exprs[i], ctx, hashes[i]);
+
             return ret;
         }
 

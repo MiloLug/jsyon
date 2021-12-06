@@ -157,13 +157,8 @@ class Parser {
 
     createObjectHash(obj) {
         const existingHash = obj?.["@__hash"];
-        if(existingHash) {
-            return SparkMD5.hash(
-                existingHash.constructor === Array
-                ? existingHash.join(",")
-                : "Object " + existingHash
-            )
-        }
+        if(existingHash)
+            return SparkMD5.hash("Object " + existingHash)
         
         const spark = new SparkMD5();
         const keys = Object.getOwnPropertyNames(obj).sort();
@@ -207,10 +202,12 @@ class Parser {
         if (parameters["@"]) obj["@__follow_ctx"] = 1;
         if (parameters["async"]) obj["@__async"] = 1;
         if (parameters[".."]) obj["@__unpack_arr_args"] = 1;
+
         if (parameters[">"]) {
             obj["@__last"] = this.getArrayTopLevelItems(tokens)
                 .map(item => new Parser(null, item).parse());
-            obj["@__hash"] = obj["@__last"].map(item => this.createHash(item));
+            obj["@__items_hashes"] = obj["@__last"].map(item => this.createHash(item));
+            obj["@__hash"] = SparkMD5.hash(obj["@__items_hashes"].join(''));
         }
         else {
             obj["@__expr"] = new Parser(
