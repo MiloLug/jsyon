@@ -29,7 +29,6 @@ class Interpreter {
         else {
             const interp = new Interpreter(expr);
             Interpreter.exprMap.set(expr, interp);
-            console.log(11, expr);
             return interp.run(global, context);
         }
     }
