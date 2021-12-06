@@ -29,6 +29,7 @@ class Interpreter {
         else {
             const interp = new Interpreter(expr);
             Interpreter.exprMap.set(expr, interp);
+            console.log(11, expr);
             return interp.run(global, context);
         }
     }
@@ -93,12 +94,10 @@ class Interpreter {
         }
 
         this.executionQueue.push(async (state)=>{
-            if(state.curPlace !== undefined) {
-                state.prevPlace = state.curPlace;
-                state.curPlace = state.curPlace?.__get_attr__
-                    ? state.curPlace.__get_attr__(entry)
-                    : state.curPlace?.[entry];
-            }
+            state.prevPlace = state.curPlace;
+            state.curPlace = state.curPlace?.__get_attr__
+                ? state.curPlace.__get_attr__(entry)
+                : state.curPlace?.[entry];
         });
         this.position++;
     }
@@ -147,14 +146,14 @@ class Interpreter {
             this.position++;
             return;
         }
-        if(this.curPlace !== undefined) {
-            this.executionQueue.push(async (state)=>{
-                state.prevPlace = state.curPlace;
-                state.curPlace = state.curPlace[
-                    await this.processObject(state, entry)
-                ];
-            });
-        }
+
+        this.executionQueue.push(async (state)=>{
+            state.prevPlace = state.curPlace;
+            state.curPlace = state.curPlace?.[
+                await this.processObject(state, entry)
+            ];
+        });
+
         this.position++;
     }
 

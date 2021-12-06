@@ -55,6 +55,23 @@ Obj [] (through) [>: [
     ]],
     ~> async wait_all[@..:~> selector["not kek"] []],
 
-    print["end selector 2"]
+    print["end selector 2"],
+
+
+    print["dynamic selector test"],
+
+    ~>test = [:Fn[o, t, $:~>o {@:~>t}]],
+    ~>obj = [:Obj[
+        :Arr[a, :1],
+        :Arr[b, :2],
+        :Arr[c, :3]
+    ]],
+
+    print[@:~>test[@:~>obj, a]],
+    print[@:~>test[@:~>obj, b]],
+    print[@:~>test[@:~>obj, c]],
+    print[@:~>test[@:~>obj, a]],
+    print[@:~>test[@:~>obj, b]],
+    print[@:~>test[@:~>obj, c]],
 ]]
 
