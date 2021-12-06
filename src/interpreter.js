@@ -2,8 +2,8 @@ const operators = require('./operators.js');
 
 class Interpreter {
     static entryTypeMethods = new Map();
-    static exprMap = new Map();
-    static rawExprMap = new Map();
+    static exprCacheMap = new Map();
+    static rawExprCacheMap = new Map();
 
     constructor(path) {        
         this.position = 0;
@@ -23,12 +23,13 @@ class Interpreter {
      * @param {*} context Expression's context
      * @returns whatewer the expr returns
      */
-    static runExprGlobal(global, expr, context) {
-        if(Interpreter.exprMap.has(expr))
-            return Interpreter.exprMap.get(expr).run(global, context);
+    static runExprGlobal(global, expr, context, hash=null) {
+        const key = hash ?? expr;
+        if(Interpreter.exprCacheMap.has(key))
+            return Interpreter.exprCacheMap.get(key).run(global, context);
         else {
             const interp = new Interpreter(expr);
-            Interpreter.exprMap.set(expr, interp);
+            Interpreter.exprCacheMap.set(key, interp);
             return interp.run(global, context);
         }
     }
@@ -161,10 +162,10 @@ class Interpreter {
         
         if(obj["@__raw"]) { 
             if(obj["@__last"] !== undefined) {
-                let raw = Interpreter.rawExprMap.get(obj["@__last"]);
+                let raw = Interpreter.rawExprCacheMap.get(obj["@__last"]);
                 if (raw)
                     return raw;
-                Interpreter.rawExprMap.set(obj["@__last"], raw = ["~>", "(as-context)", [{"@__last": obj["@__last"]}]]);
+                Interpreter.rawExprCacheMap.set(obj["@__last"], raw = ["~>", "(as-context)", [{"@__last": obj["@__last"]}]]);
                 return raw;
             }
             return obj["@__expr"];
@@ -174,18 +175,21 @@ class Interpreter {
             ctx = state.context;
 
         if(obj["@__expr"] !== undefined){
-            return Interpreter.runExprGlobal(state.global, obj["@__expr"], ctx || state.prevPlace);
+            return Interpreter.runExprGlobal(state.global, obj["@__expr"], ctx || state.prevPlace, obj["@__hash"]);
         }
 
         if(obj["@__last"] !== undefined){
             const exprs = obj["@__last"];
+            const hash = obj["@__hash"];
             ctx ||= state.prevPlace;
 
             if(obj["@__async"]) {
                 const toHandle = [];
                 
                 for(let i = 0, len = exprs.length; i < len; i++)
-                    toHandle.push(Interpreter.runExprGlobal(state.global, exprs[i], ctx));
+                    toHandle.push(
+                        Interpreter.runExprGlobal(state.global, exprs[i], ctx, hash?.[i])
+                    );
 
                 await Promise.all(toHandle);
                 return toHandle.length ? toHandle[toHandle.length - 1] : state.global.Null;
@@ -193,7 +197,7 @@ class Interpreter {
             
             let ret;
             for(let i = 0, len = exprs.length; i < len; i++)
-                ret = await Interpreter.runExprGlobal(state.global, exprs[i], ctx);
+                ret = await Interpreter.runExprGlobal(state.global, exprs[i], ctx, hash?.[i]);
             return ret;
         }
 
