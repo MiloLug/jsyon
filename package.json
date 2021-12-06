@@ -25,6 +25,7 @@
     "commander": "^8.2.0",
     "esm": "^3.2.25",
     "prompt-sync": "^4.2.0",
+    "spark-md5": "^3.0.2",
     "webpack": "^5.48.0",
     "webpack-cli": "^4.7.2"
   }

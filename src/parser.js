@@ -1,3 +1,6 @@
+const SparkMD5 = require('spark-md5');
+
+
 function escapeRegExp(string) {
     return string.replace(/[\/.*+?^${}()|[\]\\\-]/g, '\\$&');
 }
@@ -57,7 +60,7 @@ class QuoteBlock {
 }
 
 
-module.exports = class Parser {
+class Parser {
     static tokenCollections = [
         new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=', '..']),
         new TokenCollection(1, ['$', '>', '<', '!', '~', '&', '|', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
@@ -130,6 +133,71 @@ module.exports = class Parser {
         return data ? data.replace(/\\(.)/gmi, "$1") : "";
     }
 
+    createArrayHash(arr) {        
+        const spark = new SparkMD5();
+
+        let tmp;
+        for(let i = 0, len = arr.length; i < len; i++) {
+            tmp = arr[i];
+            switch(tmp?.constructor) {
+                case Object:
+                    tmp = this.createObjectHash(tmp);
+                    break;
+                case Array:
+                    tmp = this.createArrayHash(tmp);
+                    break;
+                default:
+                    tmp = "" + tmp;
+            }
+            spark.append(tmp);
+        }
+
+        return spark.end();
+    }
+
+    createObjectHash(obj) {
+        const existingHash = obj?.["@__hash"];
+        if(existingHash) {
+            return SparkMD5.hash(
+                existingHash.constructor === Array
+                ? existingHash.join(",")
+                : "Object " + existingHash
+            )
+        }
+        
+        const spark = new SparkMD5();
+        const keys = Object.getOwnPropertyNames(obj).sort();
+
+        let tmp;
+        for(let i = 0, len = keys.length; i < len; i++) {
+            tmp = obj[key];
+            switch(tmp?.constructor) {
+                case Object:
+                    tmp = this.createObjectHash(tmp);
+                    break;
+                case Array:
+                    tmp = this.createArrayHash(tmp);
+                    break;
+                default:
+                    tmp = "" + tmp;
+            }
+            spark.append(tmp);
+        }
+
+        return spark.end();
+    }
+
+    createHash(expr) {
+        switch(expr?.constructor) {
+            case Object:
+                return this.createObjectHash(expr);
+            case Array:
+                return this.createArrayHash(expr);
+            default:
+                return SparkMD5.hash("" + expr);
+        }
+    }
+
     buildExpr(parameters, tokens) {
         parameters = parameters
             .filter(item => item)
@@ -142,12 +210,14 @@ module.exports = class Parser {
         if (parameters[">"]) {
             obj["@__last"] = this.getArrayTopLevelItems(tokens)
                 .map(item => new Parser(null, item).parse());
+            obj["@__hash"] = obj["@__last"].map(item => this.createHash(item));
         }
         else {
             obj["@__expr"] = new Parser(
                 null,
                 this.getArrayTopLevelItems(tokens)[0]
             ).parse();
+            obj["@__hash"] = this.createHash(obj["@__expr"]);
         }
 
         return obj;
@@ -241,3 +311,5 @@ module.exports = class Parser {
     }
 }
 
+
+module.exports = Parser;
