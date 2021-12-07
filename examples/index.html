@@ -23,11 +23,11 @@
     <div class="out"></div>
 
     <script lang="jsyon">
-        js document querySelector[.btn] (through)[last:[
+        Js document querySelector[.btn] (through) [>:[
             ~> counter = [:0],
-            ~> addEventListener[click, :Fn[e, raw last:[
+            ~> addEventListener[click, :Fn[e, $>:[
                 ~> e currentTarget counter += [:1],
-                js document querySelector[.out] innerHTML = [@:
+                Js document querySelector[.out] innerHTML = [@:
                     ~> e currentTarget counter
                 ]
             ]]]
@@ -35,5 +35,5 @@
     </script>
 </body>
     
-<script src="https://gitcdn.link/cdn/MiloLug/jsyon/js-web-integration/dist/jsyon-integration.js"></script>
+<script src="https://gitcdn.link/cdn/MiloLug/jsyon/js-web-integration/dist/jsyon-integration.js?v=1"></script>
 </html>
