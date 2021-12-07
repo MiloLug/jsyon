@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/jsyon-integration.js",
   "scripts": {
-    "build": "npx webpack --mode production"
+    "build": "npx webpack --mode production",
+    "serve": "npx http-server examples/"
   },
   "author": "MiloLug",
   "license": "ISC",
