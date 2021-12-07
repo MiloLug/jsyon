@@ -23,12 +23,12 @@
     <div class="out"></div>
 
     <script lang="jsyon">
-        js document querySelector['.btn'] (through)[last:[
-            this counter = [:Num[0]],
-            this addEventListener[click, :Fn[e, raw last:[
-                this e currentTarget counter += [:Num[1]],
-                js document querySelector['.out'] innerHTML = [@:
-                    this e currentTarget counter
+        js document querySelector[.btn] (through)[last:[
+            ~> counter = [:0],
+            ~> addEventListener[click, :Fn[e, raw last:[
+                ~> e currentTarget counter += [:1],
+                js document querySelector[.out] innerHTML = [@:
+                    ~> e currentTarget counter
                 ]
             ]]]
         ]]
