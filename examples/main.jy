@@ -51,7 +51,7 @@ Obj [] (through) [>: [
     ~> selector = [@:~>branches multi_match_selector[
         :Arr["kek", :Fn[$: sleep[:1001] print["lol1"]] (async)],
         :Arr["kek", :Fn[$: sleep[:1000] print["lol2"]] (async)],
-        :Arr["not kek", :Fn[$: print["lol not kek"]] (async)]
+        :Arr["not kek", :Fn[$: print["lol not kek #not comment"]] (async)]  # but this is comment
     ]],
     ~> async wait_all[@..:~> selector["not kek"] []],
 
@@ -67,7 +67,7 @@ Obj [] (through) [>: [
         :Arr[c, :3]
     ]],
 
-    print[@:~>test[@:~>obj, a]],
+    print[@:~>test[@:~>obj, a]],  # caching tests
     print[@:~>test[@:~>obj, b]],
     print[@:~>test[@:~>obj, c]],
     print[@:~>test[@:~>obj, a]],

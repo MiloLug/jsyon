@@ -80,32 +80,27 @@ class Parser {
         ']': '{',
         ')': '('
     };
-    
-    static commentRegExp = new RegExp(
-        `(?:#\\*[\\s\\S]*?\\*#)|(?:#.*?$)`,
-        'gmi'
-    );
 
     // put together all the parts of big regex
     static tokenizerRegExp = new RegExp(
         Parser.quoteBlocks.join('|')
-        + `|(?:-|)(?:0x[a-f0-9]+|0o[0-7]+|0b[01]+|\\d+)(?!\\w)`
-        + `|(?:\\d|\\w|\\\\(?:${Parser.tokenCollections.join('|')}))+|`
+        + `|(?<comment>#\\*[\\s\\S]*?\\*#|#.*?$)`  // comments
+        + `|(?:-|)(?:0x[a-f0-9]+|0o[0-7]+|0b[01]+|\\d+)(?!\\w)`  // numbers
+        + `|(?:\\d|\\w|\\\\(?:${Parser.tokenCollections.join('|')}))+|`  // plain words (if connected to the tokens etc)
         + Parser.tokenCollections.join('|'),
         'gmi'
     );
 
     constructor(code, tokens=null) {
-        if(code)
-            code = code.replace(Parser.commentRegExp, '');
-        
-        this.tokens = tokens || [...code.matchAll(Parser.tokenizerRegExp)].map(
-            item => QuoteBlock.specialsChars.clean(
-                item
-                .reverse()
-                .find(group => group !== undefined)  // it's convenient to take something important from the last group
-            )
-        );
+        this.tokens = tokens || [...code.matchAll(Parser.tokenizerRegExp)]
+            .filter(item => !item.groups?.comment)
+            .map(
+                item => QuoteBlock.specialsChars.clean(
+                    item
+                    .reverse()
+                    .find(group => group !== undefined)  // it's convenient to take something important from the last group
+                )
+            );
         this.position = 0;
         this.tokensCount = this.tokens.length;
         this.body = [];
