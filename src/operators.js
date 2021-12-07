@@ -90,6 +90,10 @@ const operators = {
         let prevPlace = state.prevPlace;
         return value => prevPlace * value;
     },
+    "**": (state, obj, entry) => {
+        let prevPlace = state.prevPlace;
+        return value => prevPlace ** value;
+    },
 
     ">": (state, obj, entry) => {
         let prevPlace = state.prevPlace;

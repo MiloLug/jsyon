@@ -62,7 +62,7 @@ class QuoteBlock {
 
 class Parser {
     static tokenCollections = [
-        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=', '..']),
+        new TokenCollection(2, ['+=', '-=', '/=', '*=', '~>', '==', '!=', '..', '**']),
         new TokenCollection(1, ['$', '>', '<', '!', '~', '&', '|', '=', '+', '-', '/', '*', ',', ':', '[', ']', '{', '}', '(', ')', '@', '.']),
     ];
     static quoteBlocks = [
