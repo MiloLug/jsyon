@@ -5,6 +5,7 @@ const { Command } = require('commander');
 const { version } = require('../package.json');
 
 const { Global, Parser } = require('./native/main.js');
+const { Global: DebuggingGlobal } = require('./native/debug/main.js');
 
 
 const program = new Command();
@@ -27,12 +28,13 @@ program
     .command('run')
     .description('run a jsyon file')
     .option('-j, --json', 'run json representation')
+    .option('-d, --debug', 'use debug mode (additional logs)')
     .argument('<file>')
     .action(async (file, options) => {
         let src = await utils.readFile(file);
         if(!src) return;
 
-        let jsyonGlobal = new Global(path.resolve(file), process.cwd());
+        let jsyonGlobal = new (options.debug ? DebuggingGlobal : Global)(path.resolve(file), process.cwd());
         
         if(options.json) {
             try {

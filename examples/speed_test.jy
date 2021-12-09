@@ -17,7 +17,7 @@ Obj [] (through) [>: [
     ]],
 
 
-    print["start\n"],
+    print["start: sum using (reduce), 100k items\n"],
 
     ~>test_timer = [:Fn[fn, $>:[
         ~>start = [:Js Date now[]],

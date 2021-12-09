@@ -58,7 +58,7 @@ Obj [] (through) [>: [
     print["end selector 2"],
 
 
-    print["dynamic selector test"],
+    print["\n\n-- Dynamic selector test:\n"],
 
     ~>test = [:Fn[o, t, $:~>o {@:~>t}]],
     ~>obj = [:Obj[
@@ -67,11 +67,15 @@ Obj [] (through) [>: [
         :Arr[c, :3]
     ]],
 
-    print[@:~>test[@:~>obj, a]],  # caching tests
+    print[@:~>test[@:~>obj, a]],  # also caching tests
     print[@:~>test[@:~>obj, b]],
     print[@:~>test[@:~>obj, c]],
     print[@:~>test[@:~>obj, a]],
     print[@:~>test[@:~>obj, b]],
     print[@:~>test[@:~>obj, c]],
+
+
+    print["\n\n-- Speed test:\n"],
+    import[speed_test.jy],
 ]]
 
