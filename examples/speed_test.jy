@@ -44,10 +44,10 @@ Obj [] (through) [>: [
 
 
     print["jsyon result (ms): ",
-        @:~>test_avg[:15, @:~>test_timer (bind) [@:~>fn1]]
+        @:~>test_avg[:60, @:~>test_timer (bind) [@:~>fn1]]
     ],
     print["js result (ms): ",
-        @:~>test_avg[:15, @:~>test_timer (bind) [@:~>fn2]]
+        @:~>test_avg[:60, @:~>test_timer (bind) [@:~>fn2]]
     ],
 
     print[end],

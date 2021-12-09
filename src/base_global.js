@@ -10,6 +10,8 @@ let nativeScope =
                 ? self
                 : globalThis;
 
+const isFirefox = nativeScope?.navigator?.userAgent?.indexOf("Firefox") !== -1 || !!$?.browser?.mozilla;
+
 
 class Range {
     constructor(global, a, b, step=1) {
@@ -100,30 +102,46 @@ class BaseGlobal {
     }
 
     Obj(...args) {
-        const obj = {};
-        for(let i = 0, len = args.length; i < len; i++)
-            obj[args[i][0]] = args[i][1];
+        return Object.fromEntries(args);
+    }
 
-        return obj;
-    }
-    
-    Arr(...args) {
-        if(args.length === 1) {
-            let a = args[0];
-            if(a?.__to_arr__) return a.__to_arr__();
+    Arr = isFirefox
+        ? (...args) => {
+            if(args.length === 1) {
+                let a = args[0];
+                if(a?.__to_arr__) return a.__to_arr__();
+            }
+            return args;
         }
-        return args;
-    }
+        : (a, b, ...args) => {
+            if (a === undefined) return [];
+            if (b === undefined) return a?.__to_arr__ ? a.__to_arr__() : [a];
+            // for node or chrome it's better than just [a, b, ...args]
+            return ((...innerArgs) => innerArgs) (a, b, ...args);
+        }
     
     Fn(...args) {
         let body = args[args.length - 1];
-        let params = args.slice(0, args.length - 1);
+        args.length -= 1;
 
         let fn = (...innerArgs) => {
-            let context = this.Obj(...this.zip(params, innerArgs));
-            context['__fn__'] = fn;
-            context['__args__'] = innerArgs;
-            context['__args_names__'] = params;
+            const context = {
+                __fn__: fn,
+                __args__: innerArgs,
+                __args_names__: args
+            };
+
+            switch(innerArgs.length) {
+                case 0:
+                    break;
+                case 1:
+                    context[args[0]] = innerArgs[0];
+                    break;
+                default:
+                    for(let i = 0, len = innerArgs.length; i < len; i++) {
+                        context[args[i]] = innerArgs[i];
+                    }
+            }
             return Interpreter.runExprGlobal(this, body, context);
         };
         return fn;
