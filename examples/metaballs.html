@@ -1,0 +1,97 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+
+    <meta name="theme-color" content="#fafafa">
+
+    <script src="https://gitcdn.link/cdn/MiloLug/jsyon/js-core/dist/jsyon.js?v=5"></script>
+</head>
+
+<body>
+
+    <canvas id="output"></canvas>
+
+    <script lang="jsyon">
+        Js document getElementById["output"] (through) [>:[
+            ~>width = [:200],
+            ~>height = [:200],
+
+            ~>ctx = [@:~>getContext[2d]],
+
+            ~>distance = [:Fn[x0, y0, x1, y1, m, $:
+                ~>m / [@:Js Math sqrt[@:~>x0 - [@:~>x1] ** [:2] + [@:~>y0 - [@:~>y1] ** [:2]] ] ** [:2]]
+            ]],
+
+            ~>metaballs = [:Arr[]],
+            Fn[arr, i, $>:[
+                ~>arr push[:Obj[
+                    :Arr[x, :Js Math random[] * [:200]],
+                    :Arr[y, :Js Math random[] * [:200]],
+                    :Arr[m, :20],
+                ]],
+                Fn[@..:~>__args_names__, fn, @:~>i < [:10] (then-else) [
+                    $:~>fn[@:~>arr, @:~>i + [:1]],
+                    $:~>i
+                ]] [@..:~>__args__, @:~>__fn__]
+            ]] [@:~>metaballs, :0],
+
+            ~>sum_balls = [@:Fn[distance, i, sum, x, y, balls, $:
+                Fn[@..:~>__args_names__, fn, @:~>i < [@:~>balls length] (then-else) [
+                    $:~>fn[
+                        @:~>distance,
+                        @:~>i + [:1], 
+                        @:~>distance[
+                            @:~>x,
+                            @:~>y,
+                            @:~>balls {@:~>i} x,
+                            @:~>balls {@:~>i} y,
+                            @:~>balls {@:~>i} m
+                        ] + [@:~>sum],
+                        @:~>x,
+                        @:~>y,
+                        @:~>balls
+                    ],
+                    $:~>sum
+                ]] [@..:~>__args__, @:~>__fn__]
+            ] (bind) [@:~>distance, :0, :0]],
+
+            ~>constant = [:1],
+            ~>render = [@:Fn[constant, ctx, sum_balls, width, height, balls, $>:[    
+                ~>image_data = [@:~>ctx getImageData[:0, :0, @:~>width, @:~>height]],
+                print[@:~>image_data data length],
+
+                Fn[@..:~>__args_names__, image_data, i, $>:[
+                    print[@:~>i],
+
+                    Fn[@..:~>__args_names__, fn, @:~>i < [@:~>image_data data length] (then-else) [
+                        $>:[
+                            ~>image_data data {@:~>i} = [@:255 * [@:~>constant > [@:~>sum_balls[
+                                @:~>i / [:4] % [@:~>width], @:~>i / [:4] / [@:~>height] | [:0], @:~>balls
+                            ]]]],
+                            ~>image_data data {@:~>i + [:3]} = [@:~>image_data data {@:~>i}],
+                            ~>fn[@:~>constant, @:~>ctx, @:~>sum_balls, @:~>width, @:~>height, @:~>balls, @:~>image_data, @:~>i + [:4]],
+                        ],
+                        $:~>
+                    ]] [@..:~>__args__, @:~>__fn__]
+                ]] [@..:~>__args__, @:~>image_data, :0],
+
+                ~>ctx putImageData[@:~>image_data, :0, :0]
+            ]] (bind) [@:~>constant, @:~>ctx, @:~>sum_balls, @:~>width, @:~>height]],
+
+            ~>render[@:~>metaballs]
+        ]]
+    </script>
+</body>
+    
+<script src="https://gitcdn.link/cdn/MiloLug/jsyon/js-web-integration/dist/jsyon-integration.js?v=1"></script>
+</html>
