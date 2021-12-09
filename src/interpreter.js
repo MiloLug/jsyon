@@ -81,12 +81,13 @@ class Interpreter {
         }
 
         if(operators.has(entry)) {
-            const prevEntry = this.path[this.position-1];
+            const staticPrevEntry = this.path[this.position-1];
 
             this.executionQueue.push(async (state)=>{
                 const place = state.prevPlace;
                 state.prevPlace = state.curPlace;
-                state.curPlace = await operators.get(entry)(state, place, prevEntry); 
+                state.curPlace = await operators.get(entry)(state, place, state.prevEntry ?? staticPrevEntry);
+                state.prevEntry = entry;
             });
 
             this.position++;
@@ -98,6 +99,7 @@ class Interpreter {
             state.curPlace = state.curPlace?.__get_attr__
                 ? state.curPlace.__get_attr__(entry)
                 : state.curPlace?.[entry];
+            state.prevEntry = entry;
         });
         this.position++;
     }
@@ -106,6 +108,7 @@ class Interpreter {
         if(this.position === 0 && !this.hasStartingPoint) {
             this.executionQueue.push(async (state)=>{
                 state.curPlace = {[entry]: entry};
+                state.prevEntry = entry;
             });
             this.hasStartingPoint = true;
         }
@@ -129,6 +132,7 @@ class Interpreter {
             let tmp = state.curPlace;
             state.curPlace = await state.curPlace.apply(state.prevPlace, args);
             state.prevPlace = tmp;
+            state.prevEntry = entry;
         });
         this.position++;
     }
@@ -141,6 +145,7 @@ class Interpreter {
             this.executionQueue.push(async (state)=>{
                 state.prevPlace = state.curPlace;
                 state.curPlace = await this.processObject(state, entry);
+                state.prevEntry = state.curPlace;
             });
 
             this.position++;
@@ -149,9 +154,8 @@ class Interpreter {
 
         this.executionQueue.push(async (state)=>{
             state.prevPlace = state.curPlace;
-            state.curPlace = state.curPlace?.[
-                await this.processObject(state, entry)
-            ];
+            state.prevEntry = await this.processObject(state, entry);
+            state.curPlace = state.curPlace?.[state.prevEntry];
         });
 
         this.position++;
@@ -226,7 +230,8 @@ class Interpreter {
             global: global,
             context: context,
             prevPlace: undefined,
-            curPlace: undefined
+            curPlace: undefined,
+            prevEntry: undefined,
         }
 
         for(let i = 0, len = this.executionQueue.length; i < len; i++) {
