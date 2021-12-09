@@ -107,27 +107,30 @@ class Interpreter {
     async processNumberEntry(entry) {
         if(this.position === 0 && !this.hasStartingPoint) {
             this.executionQueue.push(async (state)=>{
-                state.curPlace = {[entry]: entry};
-                state.prevEntry = entry;
+                state.curPlace = state.prevEntry = entry;
             });
             this.hasStartingPoint = true;
+            this.position++;
+        } else {
+            this.processStringEntry(entry);
         }
-        
-        this.processStringEntry(entry);
     }
+
+    kek(...args) {return args;}
 
     async processArrayEntry(entry) {
         this.executionQueue.push(async (state)=>{
-            let args = [];
-            for (let i = 0, len = entry.length; i < len; i++){
-                const item = entry[i];
+            let args = [...entry];
+
+            for (let i = 0, len = args.length; i < len; i++){
+                const item = args[i];
                 if (item?.constructor === Object) {
                     if (item["@__unpack_arr_args"])
-                        args.push(...(await this.processObject(state, item)));
+                        args.splice(i, 1, ...(await this.processObject(state, item))),
+                        len = args.length;
                     else
-                        args.push(await this.processObject(state, item));
-                } else
-                    args.push(item);
+                        args[i] = await this.processObject(state, item);
+                }
             }
             let tmp = state.curPlace;
             state.curPlace = await state.curPlace.apply(state.prevPlace, args);
