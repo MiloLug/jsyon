@@ -4,4 +4,3 @@ const Global = require('./global.js');
 
 // Just import all lib parts
 module.exports = {Interpreter, Parser, Global};
-
