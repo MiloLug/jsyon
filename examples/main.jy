@@ -77,5 +77,9 @@ Obj [] (through) [>: [
 
     print["\n\n-- Speed test:\n"],
     import[speed_test.jy],
+
+
+    print["\n\n-- FizzBuzz:\n"],
+    import[fizz_buzz.jy],
 ]]
 
