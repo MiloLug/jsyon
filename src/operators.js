@@ -51,6 +51,7 @@ const operators = {
     "!=": ({prevPlace}) => value => prevPlace !== value,
     "&": ({prevPlace}) => value => prevPlace & value,
     "|": ({prevPlace}) => value => prevPlace | value,
+    "!": ({prevPlace}) => value => !prevPlace,
 
     "..": ({prevPlace, global}, obj, entry) => (value, step=1) => global.Range(prevPlace, value, step),
 };
