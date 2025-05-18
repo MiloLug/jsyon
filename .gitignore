@@ -118,3 +118,5 @@ out
 
 # vim
 *.swp
+dist/*
+dist
